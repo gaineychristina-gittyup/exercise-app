@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Exercise Tracker</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="app__header">
+        <h1>Exercise Tracker</h1>
+        <p class="app__subtitle">Log your workouts. Stay consistent.</p>
+      </header>
+
+      <section class="card" aria-labelledby="log-heading">
+        <h2 id="log-heading">Log a workout</h2>
+        <form id="entry-form" class="form" autocomplete="off">
+          <div class="form__row">
+            <label for="exercise">Exercise</label>
+            <input id="exercise" name="exercise" type="text" required placeholder="Squats" />
+          </div>
+          <div class="form__row form__row--split">
+            <div>
+              <label for="sets">Sets</label>
+              <input id="sets" name="sets" type="number" min="1" required value="3" />
+            </div>
+            <div>
+              <label for="reps">Reps</label>
+              <input id="reps" name="reps" type="number" min="1" required value="10" />
+            </div>
+            <div>
+              <label for="weight">Weight (lb)</label>
+              <input id="weight" name="weight" type="number" min="0" step="0.5" value="0" />
+            </div>
+          </div>
+          <div class="form__row">
+            <label for="notes">Notes</label>
+            <input id="notes" name="notes" type="text" placeholder="optional" />
+          </div>
+          <button type="submit" class="button button--primary">Add entry</button>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="history-heading">
+        <div class="card__header">
+          <h2 id="history-heading">History</h2>
+          <button id="clear-all" type="button" class="button button--ghost">Clear all</button>
+        </div>
+        <ul id="entries" class="entries" aria-live="polite"></ul>
+        <p id="empty-state" class="empty-state">No workouts logged yet.</p>
+      </section>
+    </main>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>
