@@ -1,0 +1,10 @@
+{
+  "name": "exercise-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A lightweight exercise tracker that runs as a static web app.",
+  "scripts": {
+    "start": "npx --yes serve@14 -l 3000 .",
+    "dev": "npx --yes serve@14 -l 3000 ."
+  }
+}
