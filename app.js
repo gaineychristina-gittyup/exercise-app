@@ -1,4 +1,8 @@
 const STORAGE_KEY = "workout-runner.last-input.v1";
+const HISTORY_KEY = "workout-buddy.history.v1";
+const PLAN_KEY = "workout-buddy.weekly-plan.v1";
+
+const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const screens = {
   home: document.querySelector('[data-screen="home"]'),
@@ -6,10 +10,14 @@ const screens = {
   done: document.querySelector('[data-screen="done"]'),
 };
 
+const panels = document.querySelectorAll(".tab-panel");
+const tabs = document.querySelectorAll(".tab");
+
 const els = {
   input: document.getElementById("workout-input"),
   preview: document.getElementById("preview-list"),
   summary: document.getElementById("summary"),
+  todayPlan: document.getElementById("today-plan"),
   startBtn: document.getElementById("start-btn"),
   sampleBtn: document.getElementById("sample-btn"),
   exerciseName: document.getElementById("exercise-name"),
@@ -23,6 +31,13 @@ const els = {
   prevBtn: document.getElementById("prev-btn"),
   endBtn: document.getElementById("end-btn"),
   newBtn: document.getElementById("new-btn"),
+  planEditor: document.getElementById("plan-editor"),
+  planStatus: document.getElementById("plan-status"),
+  calTitle: document.getElementById("cal-title"),
+  calGrid: document.getElementById("cal-grid"),
+  calStats: document.getElementById("cal-stats"),
+  calPrev: document.getElementById("cal-prev"),
+  calNext: document.getElementById("cal-next"),
 };
 
 const REP_SET_ESTIMATE = 45; // seconds per set, used only for ETA estimation
@@ -358,6 +373,8 @@ function finishWorkout() {
   state.intervalId = null;
   releaseWakeLock();
   document.body.classList.remove("is-rest");
+  markTodayDone();
+  renderCalendar();
   beep(660, 200);
   setTimeout(() => beep(880, 350), 220);
   showScreen("done");
@@ -397,6 +414,201 @@ document.addEventListener("visibilitychange", () => {
   if (!document.hidden && state.intervalId) requestWakeLock();
 });
 
+// ---------- History ----------
+
+function todayKey(d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function saveHistory(set) {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify([...set].sort()));
+}
+
+function markTodayDone() {
+  const set = loadHistory();
+  set.add(todayKey());
+  saveHistory(set);
+}
+
+const calState = { year: new Date().getFullYear(), month: new Date().getMonth() };
+
+function renderCalendar() {
+  const history = loadHistory();
+  const { year, month } = calState;
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  const startDow = first.getDay();
+  const daysInMonth = last.getDate();
+  const today = todayKey();
+
+  els.calTitle.textContent = first.toLocaleString(undefined, {
+    month: "long",
+    year: "numeric",
+  });
+  els.calGrid.innerHTML = "";
+
+  for (let i = 0; i < startDow; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cal__day cal__day--empty";
+    els.calGrid.append(cell);
+  }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = todayKey(new Date(year, month, day));
+    const cell = document.createElement("div");
+    cell.className = "cal__day";
+    if (history.has(key)) cell.classList.add("cal__day--done");
+    if (key === today) cell.classList.add("cal__day--today");
+    cell.innerHTML = history.has(key)
+      ? `<span class="cal__num">${day}</span><span class="cal__x">✕</span>`
+      : `<span class="cal__num">${day}</span>`;
+    els.calGrid.append(cell);
+  }
+
+  const monthDone = [...history].filter((k) => k.startsWith(
+    `${year}-${String(month + 1).padStart(2, "0")}`
+  )).length;
+  els.calStats.textContent =
+    monthDone === 0
+      ? "No workouts yet this month."
+      : `${monthDone} workout${monthDone === 1 ? "" : "s"} this month · ${currentStreak(history)}-day streak`;
+}
+
+function currentStreak(history) {
+  let streak = 0;
+  const cursor = new Date();
+  while (history.has(todayKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+els.calPrev.addEventListener("click", () => {
+  calState.month -= 1;
+  if (calState.month < 0) {
+    calState.month = 11;
+    calState.year -= 1;
+  }
+  renderCalendar();
+});
+els.calNext.addEventListener("click", () => {
+  calState.month += 1;
+  if (calState.month > 11) {
+    calState.month = 0;
+    calState.year += 1;
+  }
+  renderCalendar();
+});
+
+// ---------- Weekly plan ----------
+
+function loadPlan() {
+  try {
+    const raw = localStorage.getItem(PLAN_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return typeof parsed === "object" && parsed ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function savePlan(plan) {
+  localStorage.setItem(PLAN_KEY, JSON.stringify(plan));
+}
+
+function todayPlanText() {
+  return loadPlan()[DAYS[new Date().getDay()]] || "";
+}
+
+function renderPlanEditor() {
+  if (els.planEditor.childElementCount > 0) return; // build once
+  const plan = loadPlan();
+  for (const day of DAYS) {
+    const wrap = document.createElement("div");
+    wrap.className = "plan__day";
+    const label = document.createElement("label");
+    label.className = "plan__label";
+    label.textContent = day;
+    const ta = document.createElement("textarea");
+    ta.className = "textarea plan__textarea";
+    ta.rows = 4;
+    ta.spellcheck = false;
+    ta.placeholder = "Rest day, or paste a workout…";
+    ta.value = plan[day] || "";
+    ta.addEventListener("input", () => {
+      const cur = loadPlan();
+      cur[day] = ta.value;
+      savePlan(cur);
+      els.planStatus.textContent = "Saved.";
+      refreshTodayPlan();
+    });
+    label.append(ta);
+    wrap.append(label);
+    els.planEditor.append(wrap);
+  }
+}
+
+function refreshTodayPlan() {
+  const text = todayPlanText().trim();
+  const dayName = DAYS[new Date().getDay()];
+  if (!text) {
+    els.todayPlan.hidden = true;
+    els.todayPlan.textContent = "";
+    return;
+  }
+  els.todayPlan.hidden = false;
+  els.todayPlan.innerHTML = "";
+  const label = document.createElement("span");
+  label.textContent = `Today (${dayName}) has a planned workout. `;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "link-btn link-btn--inline";
+  btn.textContent = "Load it";
+  btn.addEventListener("click", () => {
+    els.input.value = text;
+    refreshPreview();
+    els.input.focus();
+    els.todayPlan.hidden = true;
+  });
+  els.todayPlan.append(label, btn);
+}
+
+// ---------- Tabs ----------
+
+function activateTab(name) {
+  for (const tab of tabs) {
+    const active = tab.dataset.tab === name;
+    tab.classList.toggle("tab--active", active);
+    tab.setAttribute("aria-selected", active ? "true" : "false");
+  }
+  for (const panel of panels) {
+    panel.classList.toggle("hidden", panel.dataset.panel !== name);
+  }
+  if (name === "history") renderCalendar();
+  if (name === "plan") renderPlanEditor();
+  if (name === "workout") refreshTodayPlan();
+}
+
+for (const tab of tabs) {
+  tab.addEventListener("click", () => activateTab(tab.dataset.tab));
+}
+
+// ---------- Init ----------
+
 const saved = localStorage.getItem(STORAGE_KEY);
 if (saved) els.input.value = saved;
 refreshPreview();
+refreshTodayPlan();

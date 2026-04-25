@@ -37,7 +37,39 @@ body.is-rest {
 .app {
   max-width: 720px;
   margin: 0 auto;
-  padding: 28px 20px 60px;
+  padding: 20px 20px 60px;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 18px;
+}
+
+.tab {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.tab--active {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.tab-panel.hidden {
+  display: none;
 }
 
 .app__header {
@@ -279,12 +311,149 @@ body.is-rest .active__timer {
   margin: 0 0 28px;
 }
 
+.today-plan {
+  margin: 14px 0 0;
+  padding: 10px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.link-btn--inline {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.link-btn--inline:hover {
+  color: var(--primary-hover);
+}
+
+/* History calendar */
+
+.cal__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cal__nav .link-btn {
+  font-size: 22px;
+  padding: 4px 14px;
+  color: var(--text);
+}
+
+.cal__title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.cal__dow,
+.cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.cal__dow {
+  margin-bottom: 4px;
+}
+
+.cal__dow span {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.cal__day {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--surface-2);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.cal__day--empty {
+  background: transparent;
+}
+
+.cal__day--today {
+  outline: 2px solid var(--primary);
+}
+
+.cal__day--done {
+  background: rgba(76, 210, 138, 0.15);
+  color: var(--accent);
+}
+
+.cal__num {
+  position: absolute;
+  top: 3px;
+  left: 5px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cal__x {
+  font-size: clamp(20px, 6vw, 30px);
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+
+/* Weekly plan */
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.plan__day {
+  display: flex;
+  flex-direction: column;
+}
+
+.plan__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plan__textarea {
+  min-height: 90px;
+}
+
+.plan__status {
+  margin-top: 12px;
+  text-align: right;
+}
+
 @media (max-width: 540px) {
   .app {
-    padding: 20px 14px 40px;
+    padding: 16px 14px 40px;
   }
 
   .textarea {
     font-size: 16px; /* avoid iOS zoom-on-focus */
+  }
+
+  .tab {
+    font-size: 13px;
+  }
+
+  .cal__day {
+    font-size: 12px;
   }
 }
