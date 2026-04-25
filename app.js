@@ -9,11 +9,13 @@ const screens = {
 const els = {
   input: document.getElementById("workout-input"),
   preview: document.getElementById("preview-list"),
+  summary: document.getElementById("summary"),
   startBtn: document.getElementById("start-btn"),
   sampleBtn: document.getElementById("sample-btn"),
   exerciseName: document.getElementById("exercise-name"),
   timer: document.getElementById("timer"),
   nextUp: document.getElementById("next-up"),
+  eta: document.getElementById("eta"),
   progress: document.getElementById("progress"),
   pauseBtn: document.getElementById("pause-btn"),
   skipBtn: document.getElementById("skip-btn"),
@@ -103,6 +105,26 @@ function formatTime(seconds) {
   return `${m}:${r.toString().padStart(2, "0")}`;
 }
 
+function formatDuration(seconds) {
+  const s = Math.max(0, Math.round(seconds));
+  if (s < 60) return `${s}s`;
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  if (m < 60) return r === 0 ? `${m} min` : `${m}:${r.toString().padStart(2, "0")}`;
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return `${h}h ${mm}m`;
+}
+
+function formatEta(secondsFromNow) {
+  const eta = new Date(Date.now() + secondsFromNow * 1000);
+  return eta.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function totalDuration(exercises) {
+  return exercises.reduce((s, e) => s + (Number(e.duration) || 0), 0);
+}
+
 function renderPreview(exercises) {
   els.preview.innerHTML = "";
   if (!exercises.length) return;
@@ -117,6 +139,10 @@ function renderPreview(exercises) {
 function refreshPreview() {
   const exercises = parseWorkout(els.input.value);
   renderPreview(exercises);
+  const total = totalDuration(exercises);
+  els.summary.textContent = total > 0
+    ? `Total ${formatDuration(total)} · done at ${formatEta(total)}`
+    : "";
   els.startBtn.disabled = exercises.length === 0;
   localStorage.setItem(STORAGE_KEY, els.input.value);
 }
@@ -171,6 +197,13 @@ function updateActiveUI() {
   els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
   const next = state.exercises[state.index + 1];
   els.nextUp.textContent = next ? `Next: ${next.name}` : "Last one";
+  const futureTotal = state.exercises
+    .slice(state.index + 1)
+    .reduce((s, e) => s + (Number(e.duration) || 0), 0);
+  const remainingTotal = state.remaining + futureTotal;
+  els.eta.textContent = state.paused
+    ? `${formatDuration(remainingTotal)} left · paused`
+    : `${formatDuration(remainingTotal)} left · done at ${formatEta(remainingTotal)}`;
   els.pauseBtn.textContent = state.paused ? "Resume" : "Pause";
   els.prevBtn.disabled = state.index === 0;
   document.body.classList.toggle("is-rest", /rest/i.test(ex.name));

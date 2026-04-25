@@ -160,9 +160,20 @@ body.is-rest {
   color: var(--danger);
 }
 
+.summary {
+  margin: 14px 0 0;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.summary:empty {
+  display: none;
+}
+
 .preview {
   list-style: none;
-  margin: 14px 0 0;
+  margin: 8px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
@@ -214,8 +225,15 @@ body.is-rest .active__timer {
 .active__next {
   text-align: center;
   color: var(--muted);
-  margin-bottom: 32px;
   min-height: 1.5em;
+}
+
+.active__eta {
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 32px;
+  min-height: 1.2em;
 }
 
 .active__actions {
