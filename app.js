@@ -256,6 +256,7 @@ const state = {
   index: 0,
   setIndex: 0,
   remaining: 0,
+  elapsed: 0,
   paused: false,
   awaitingNext: false,
   intervalId: null,
@@ -323,13 +324,13 @@ function updateActiveUI() {
   if (ex.type === "reps") {
     if (state.awaitingNext) {
       els.timer.textContent = "✓";
-      els.setText.textContent = `${ex.sets} set${ex.sets === 1 ? "" : "s"} done`;
+      els.setText.textContent = `${ex.sets} set${ex.sets === 1 ? "" : "s"} done · ${formatTime(state.elapsed)}`;
       const isLast = state.index + 1 >= state.exercises.length;
       els.pauseBtn.textContent = isLast ? "Finish" : "Next exercise";
     } else {
       els.timer.textContent = `${ex.reps}`;
-      els.setText.textContent =
-        ex.sets > 1 ? `Set ${state.setIndex + 1} of ${ex.sets} · reps` : "reps";
+      const setLabel = ex.sets > 1 ? `Set ${state.setIndex + 1} of ${ex.sets}` : "Reps";
+      els.setText.textContent = `${setLabel} · ${formatTime(state.elapsed)}`;
       els.pauseBtn.textContent = "Done set";
     }
   } else {
@@ -365,13 +366,17 @@ function updateActiveUI() {
 
 function tick() {
   if (state.paused) return;
-  state.remaining -= 1;
-  if (state.remaining <= 0) {
-    beep(880, 250);
-    advance(1);
-    return;
+  state.elapsed += 1;
+  const ex = state.exercises[state.index];
+  if (ex && ex.type === "time") {
+    state.remaining -= 1;
+    if (state.remaining <= 0) {
+      beep(880, 250);
+      advance(1);
+      return;
+    }
+    if (state.remaining <= 3 && state.remaining > 0) beep(660, 80);
   }
-  if (state.remaining <= 3 && state.remaining > 0) beep(660, 80);
   updateActiveUI();
 }
 
@@ -381,16 +386,12 @@ function beginCurrent() {
   state.setIndex = 0;
   state.paused = false;
   state.awaitingNext = false;
+  state.elapsed = 0;
   clearInterval(state.intervalId);
-  state.intervalId = null;
   resetRing();
-  if (ex.type === "reps") {
-    updateActiveUI();
-  } else {
-    state.remaining = ex.duration;
-    updateActiveUI();
-    state.intervalId = setInterval(tick, 1000);
-  }
+  if (ex.type === "time") state.remaining = ex.duration;
+  updateActiveUI();
+  state.intervalId = setInterval(tick, 1000);
 }
 
 function resetRing() {
