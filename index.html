@@ -17,15 +17,15 @@
         <div class="card">
           <label class="label" for="workout-input">Your workout</label>
           <p class="hint">
-            One exercise per line. Include a duration like <code>30s</code>, <code>1 min</code>, or <code>0:45</code>.
-            JSON also works.
+            One exercise per line. Use a duration like <code>30s</code> / <code>1 min</code> for timed,
+            or <code>3x10</code> / <code>3 sets of 10</code> for rep-based.
           </p>
           <textarea
             id="workout-input"
             class="textarea"
             rows="10"
             spellcheck="false"
-            placeholder="Squats - 40s&#10;Rest - 15s&#10;Push-ups - 40s&#10;Rest - 15s&#10;Plank - 1 min&#10;Rest - 15s&#10;Lunges - 40s"
+            placeholder="Squats - 3x10&#10;Push-ups - 3x12&#10;Plank - 30s&#10;Lunges - 3 sets of 10&#10;Burpees - 30s"
           ></textarea>
           <div class="row row--actions">
             <button id="sample-btn" type="button" class="button button--ghost">Use sample</button>
@@ -42,6 +42,7 @@
           <button id="end-btn" type="button" class="link-btn">End</button>
         </div>
         <div class="active__exercise" id="exercise-name">—</div>
+        <div class="active__subtext" id="set-text"></div>
         <div class="active__timer" id="timer">0:00</div>
         <div class="active__next" id="next-up"></div>
         <div class="active__eta" id="eta"></div>

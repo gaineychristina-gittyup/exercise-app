@@ -202,9 +202,21 @@ body.is-rest {
   font-size: clamp(28px, 6vw, 44px);
   font-weight: 700;
   text-align: center;
-  margin: 12px 0 8px;
+  margin: 12px 0 4px;
   text-transform: capitalize;
   word-break: break-word;
+}
+
+.active__subtext {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 6px;
+  min-height: 1em;
+}
+
+.active__subtext:empty {
+  display: none;
 }
 
 .active__timer {
@@ -216,6 +228,10 @@ body.is-rest {
   line-height: 1;
   margin: 8px 0 12px;
   color: var(--text);
+}
+
+body.mode-reps .active__timer {
+  color: var(--primary);
 }
 
 body.is-rest .active__timer {
