@@ -166,18 +166,18 @@ body.is-rest {
   color: white;
 }
 
-.button--primary:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
 .button--ghost {
   background: transparent;
   color: var(--text);
   border: 1px solid var(--border);
 }
 
-.button--ghost:hover:not(:disabled) {
-  border-color: var(--primary);
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.button--primary:active:not(:disabled) {
+  background: var(--primary-hover);
 }
 
 .link-btn {
@@ -189,8 +189,18 @@ body.is-rest {
   padding: 6px 8px;
 }
 
-.link-btn:hover {
-  color: var(--danger);
+@media (hover: hover) {
+  .button--primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+  }
+
+  .button--ghost:hover:not(:disabled) {
+    border-color: var(--primary);
+  }
+
+  .link-btn:hover {
+    color: var(--danger);
+  }
 }
 
 .summary {
@@ -399,8 +409,10 @@ body.is-rest .active__timer {
   font-weight: 600;
 }
 
-.link-btn--inline:hover {
-  color: var(--primary-hover);
+@media (hover: hover) {
+  .link-btn--inline:hover {
+    color: var(--primary-hover);
+  }
 }
 
 /* History calendar */
