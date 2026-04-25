@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Workout Runner</title>
+    <title>Claude Workout Buddy</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app">
       <section class="screen" data-screen="home">
         <header class="app__header">
-          <h1>Workout Runner</h1>
+          <h1>Claude Workout Buddy</h1>
           <p class="app__subtitle">Paste a workout. Tap start. Move.</p>
         </header>
 
@@ -31,6 +31,7 @@
             <button id="sample-btn" type="button" class="button button--ghost">Use sample</button>
             <button id="start-btn" type="button" class="button button--primary" disabled>Start workout</button>
           </div>
+          <p id="summary" class="summary" aria-live="polite"></p>
           <ul id="preview-list" class="preview" aria-live="polite"></ul>
         </div>
       </section>
@@ -43,6 +44,7 @@
         <div class="active__exercise" id="exercise-name">—</div>
         <div class="active__timer" id="timer">0:00</div>
         <div class="active__next" id="next-up"></div>
+        <div class="active__eta" id="eta"></div>
         <div class="active__actions">
           <button id="prev-btn" type="button" class="button button--ghost">Prev</button>
           <button id="pause-btn" type="button" class="button button--primary">Pause</button>
