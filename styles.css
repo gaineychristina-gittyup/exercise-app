@@ -493,13 +493,22 @@ body.is-rest .active__timer {
   flex-direction: column;
 }
 
+.plan__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
 .plan__label {
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+}
+
+.plan__head .link-btn {
+  font-size: 13px;
+  padding: 4px 8px;
 }
 
 .plan__textarea {

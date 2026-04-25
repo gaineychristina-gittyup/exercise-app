@@ -32,6 +32,7 @@ const els = {
   prevBtn: document.getElementById("prev-btn"),
   endBtn: document.getElementById("end-btn"),
   newBtn: document.getElementById("new-btn"),
+  clearBtn: document.getElementById("clear-btn"),
   ringFg: document.getElementById("ring-fg"),
   progressBar: document.getElementById("progressbar"),
   planEditor: document.getElementById("plan-editor"),
@@ -464,6 +465,12 @@ els.sampleBtn.addEventListener("click", () => {
   refreshPreview();
   els.input.focus();
 });
+els.clearBtn.addEventListener("click", () => {
+  if (!els.input.value) return;
+  els.input.value = "";
+  refreshPreview();
+  els.input.focus();
+});
 els.pauseBtn.addEventListener("click", () => {
   const ex = state.exercises[state.index];
   if (ex?.type === "reps") {
@@ -608,9 +615,18 @@ function renderPlanEditor() {
   for (const day of DAYS) {
     const wrap = document.createElement("div");
     wrap.className = "plan__day";
-    const label = document.createElement("label");
+
+    const head = document.createElement("div");
+    head.className = "plan__head";
+    const label = document.createElement("span");
     label.className = "plan__label";
     label.textContent = day;
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "link-btn";
+    clearBtn.textContent = "Clear";
+    head.append(label, clearBtn);
+
     const ta = document.createElement("textarea");
     ta.className = "textarea plan__textarea";
     ta.rows = 4;
@@ -624,8 +640,19 @@ function renderPlanEditor() {
       els.planStatus.textContent = "Saved.";
       refreshTodayPlan();
     });
-    label.append(ta);
-    wrap.append(label);
+
+    clearBtn.addEventListener("click", () => {
+      if (!ta.value) return;
+      ta.value = "";
+      const cur = loadPlan();
+      delete cur[day];
+      savePlan(cur);
+      els.planStatus.textContent = `Cleared ${day}.`;
+      refreshTodayPlan();
+      ta.focus();
+    });
+
+    wrap.append(head, ta);
     els.planEditor.append(wrap);
   }
 }
