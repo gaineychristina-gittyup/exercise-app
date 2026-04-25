@@ -1,6 +1,8 @@
 const STORAGE_KEY = "workout-runner.last-input.v1";
 const HISTORY_KEY = "workout-buddy.history.v1";
+const SESSIONS_KEY = "workout-buddy.sessions.v1";
 const PLAN_KEY = "workout-buddy.weekly-plan.v1";
+const GEMINI_KEY_KEY = "workout-buddy.gemini-key.v1";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -32,6 +34,7 @@ const els = {
   prevBtn: document.getElementById("prev-btn"),
   endBtn: document.getElementById("end-btn"),
   newBtn: document.getElementById("new-btn"),
+  clearBtn: document.getElementById("clear-btn"),
   ringFg: document.getElementById("ring-fg"),
   progressBar: document.getElementById("progressbar"),
   planEditor: document.getElementById("plan-editor"),
@@ -41,6 +44,11 @@ const els = {
   calStats: document.getElementById("cal-stats"),
   calPrev: document.getElementById("cal-prev"),
   calNext: document.getElementById("cal-next"),
+  geminiKey: document.getElementById("gemini-key"),
+  genRequest: document.getElementById("gen-request"),
+  genHistory: document.getElementById("gen-history"),
+  genBtn: document.getElementById("gen-btn"),
+  genStatus: document.getElementById("gen-status"),
 };
 
 const REP_SET_ESTIMATE = 45; // seconds per set, used only for ETA estimation
@@ -255,11 +263,64 @@ const state = {
   index: 0,
   setIndex: 0,
   remaining: 0,
+  elapsed: 0,
   paused: false,
   awaitingNext: false,
   intervalId: null,
   wakeLock: null,
+  sessionStart: 0,
+  sessionExercises: [],
 };
+
+function captureCurrent(action) {
+  const ex = state.exercises[state.index];
+  if (!ex) return;
+  const base = {
+    name: ex.name,
+    type: ex.type,
+    elapsed: state.elapsed,
+    action,
+  };
+  if (ex.type === "time") {
+    base.duration = ex.duration;
+    base.completedDuration = Math.max(0, ex.duration - Math.max(0, state.remaining));
+  } else {
+    base.sets = ex.sets;
+    base.reps = ex.reps;
+    base.completedSets = state.setIndex + (state.awaitingNext ? 1 : 0);
+  }
+  state.sessionExercises[state.index] = base;
+}
+
+function loadSessions() {
+  try {
+    const raw = localStorage.getItem(SESSIONS_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSession(session) {
+  const sessions = loadSessions();
+  sessions.push(session);
+  while (sessions.length > 200) sessions.shift();
+  localStorage.setItem(SESSIONS_KEY, JSON.stringify(sessions));
+}
+
+function persistSessionIfAny(completed) {
+  const exercises = state.sessionExercises.filter(Boolean);
+  if (exercises.length === 0) return;
+  saveSession({
+    date: todayKey(),
+    completed,
+    startedAt: state.sessionStart,
+    endedAt: Date.now(),
+    totalSeconds: Math.round((Date.now() - state.sessionStart) / 1000),
+    exercises,
+  });
+}
 
 function beep(frequency = 880, durationMs = 150) {
   try {
@@ -322,13 +383,13 @@ function updateActiveUI() {
   if (ex.type === "reps") {
     if (state.awaitingNext) {
       els.timer.textContent = "✓";
-      els.setText.textContent = `${ex.sets} set${ex.sets === 1 ? "" : "s"} done`;
+      els.setText.textContent = `${ex.sets} set${ex.sets === 1 ? "" : "s"} done · ${formatTime(state.elapsed)}`;
       const isLast = state.index + 1 >= state.exercises.length;
       els.pauseBtn.textContent = isLast ? "Finish" : "Next exercise";
     } else {
       els.timer.textContent = `${ex.reps}`;
-      els.setText.textContent =
-        ex.sets > 1 ? `Set ${state.setIndex + 1} of ${ex.sets} · reps` : "reps";
+      const setLabel = ex.sets > 1 ? `Set ${state.setIndex + 1} of ${ex.sets}` : "Reps";
+      els.setText.textContent = `${setLabel} · ${formatTime(state.elapsed)}`;
       els.pauseBtn.textContent = "Done set";
     }
   } else {
@@ -364,13 +425,18 @@ function updateActiveUI() {
 
 function tick() {
   if (state.paused) return;
-  state.remaining -= 1;
-  if (state.remaining <= 0) {
-    beep(880, 250);
-    advance(1);
-    return;
+  state.elapsed += 1;
+  const ex = state.exercises[state.index];
+  if (ex && ex.type === "time") {
+    state.remaining -= 1;
+    if (state.remaining <= 0) {
+      beep(880, 250);
+      captureCurrent("completed");
+      advance(1);
+      return;
+    }
+    if (state.remaining <= 3 && state.remaining > 0) beep(660, 80);
   }
-  if (state.remaining <= 3 && state.remaining > 0) beep(660, 80);
   updateActiveUI();
 }
 
@@ -380,16 +446,12 @@ function beginCurrent() {
   state.setIndex = 0;
   state.paused = false;
   state.awaitingNext = false;
+  state.elapsed = 0;
   clearInterval(state.intervalId);
-  state.intervalId = null;
   resetRing();
-  if (ex.type === "reps") {
-    updateActiveUI();
-  } else {
-    state.remaining = ex.duration;
-    updateActiveUI();
-    state.intervalId = setInterval(tick, 1000);
-  }
+  if (ex.type === "time") state.remaining = ex.duration;
+  updateActiveUI();
+  state.intervalId = setInterval(tick, 1000);
 }
 
 function resetRing() {
@@ -405,6 +467,7 @@ function completeSet() {
   if (!ex || ex.type !== "reps") return;
   if (state.awaitingNext) {
     state.awaitingNext = false;
+    captureCurrent("completed");
     advance(1);
     return;
   }
@@ -432,6 +495,8 @@ function startWorkout() {
   state.exercises = exercises;
   state.index = 0;
   state.paused = false;
+  state.sessionStart = Date.now();
+  state.sessionExercises = [];
   showScreen("active");
   requestWakeLock();
   beginCurrent();
@@ -442,6 +507,7 @@ function finishWorkout() {
   state.intervalId = null;
   releaseWakeLock();
   document.body.classList.remove("is-rest");
+  persistSessionIfAny(true);
   markTodayDone();
   renderCalendar();
   beep(660, 200);
@@ -450,6 +516,8 @@ function finishWorkout() {
 }
 
 function endWorkout() {
+  if (state.exercises[state.index]) captureCurrent("abandoned");
+  persistSessionIfAny(false);
   clearInterval(state.intervalId);
   state.intervalId = null;
   releaseWakeLock();
@@ -464,6 +532,12 @@ els.sampleBtn.addEventListener("click", () => {
   refreshPreview();
   els.input.focus();
 });
+els.clearBtn.addEventListener("click", () => {
+  if (!els.input.value) return;
+  els.input.value = "";
+  refreshPreview();
+  els.input.focus();
+});
 els.pauseBtn.addEventListener("click", () => {
   const ex = state.exercises[state.index];
   if (ex?.type === "reps") {
@@ -474,7 +548,10 @@ els.pauseBtn.addEventListener("click", () => {
   if (!state.paused) requestWakeLock();
   updateActiveUI();
 });
-els.skipBtn.addEventListener("click", () => advance(1));
+els.skipBtn.addEventListener("click", () => {
+  captureCurrent("skipped");
+  advance(1);
+});
 els.prevBtn.addEventListener("click", () => advance(-1));
 els.endBtn.addEventListener("click", endWorkout);
 els.newBtn.addEventListener("click", () => showScreen("home"));
@@ -608,9 +685,18 @@ function renderPlanEditor() {
   for (const day of DAYS) {
     const wrap = document.createElement("div");
     wrap.className = "plan__day";
-    const label = document.createElement("label");
+
+    const head = document.createElement("div");
+    head.className = "plan__head";
+    const label = document.createElement("span");
     label.className = "plan__label";
     label.textContent = day;
+    const clearBtn = document.createElement("button");
+    clearBtn.type = "button";
+    clearBtn.className = "link-btn";
+    clearBtn.textContent = "Clear";
+    head.append(label, clearBtn);
+
     const ta = document.createElement("textarea");
     ta.className = "textarea plan__textarea";
     ta.rows = 4;
@@ -624,8 +710,19 @@ function renderPlanEditor() {
       els.planStatus.textContent = "Saved.";
       refreshTodayPlan();
     });
-    label.append(ta);
-    wrap.append(label);
+
+    clearBtn.addEventListener("click", () => {
+      if (!ta.value) return;
+      ta.value = "";
+      const cur = loadPlan();
+      delete cur[day];
+      savePlan(cur);
+      els.planStatus.textContent = `Cleared ${day}.`;
+      refreshTodayPlan();
+      ta.focus();
+    });
+
+    wrap.append(head, ta);
     els.planEditor.append(wrap);
   }
 }
@@ -674,6 +771,112 @@ function activateTab(name) {
 for (const tab of tabs) {
   tab.addEventListener("click", () => activateTab(tab.dataset.tab));
 }
+
+// ---------- Gemini ----------
+
+const GEMINI_SYSTEM_PROMPT = `You generate workout plans for the "Claude Workout Buddy" app. The user pastes your output directly into the app, so respond with ONLY the workout — no preamble, no closing remarks, no headings, no numbering, no code fences.
+
+Each exercise is a block of lines:
+
+  **Exercise Name** - DURATION_OR_REPS
+  What to do: <one or two sentences on form>.
+  Target: <muscle groups>.
+  Feel: <where you should feel it>.
+
+Format rules (strict):
+- The header line MUST wrap the exercise name in **double asterisks**.
+- Header is followed by " - " then either a duration ("30s", "45s", "1 min", "1:30"), or sets x reps ("3x10", "3 sets of 10"), or just reps ("10 reps").
+- Description lines (What to do / Target / Feel) follow the header.
+- Separate exercises with a single blank line.
+- Rest periods: "**Rest** - 15s" with no description below it. Only between hard timed intervals — not between rep-based exercises.
+- Use plain hyphens, Title Case names.
+
+If the user's request is missing essentials, ask one short clarifying question — but only if truly necessary; default to making reasonable choices and outputting the workout.`;
+
+function summarizeRecentSessions(maxDays = 14) {
+  const sessions = loadSessions();
+  if (!sessions.length) return "";
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - maxDays);
+  const cutoffKey = todayKey(cutoff);
+  const recent = sessions.filter((s) => s.date >= cutoffKey).slice(-10);
+  if (!recent.length) return "";
+  const lines = recent.map((s) => {
+    const exs = (s.exercises || [])
+      .map((e) => {
+        if (e.type === "reps") {
+          const done = `${e.completedSets ?? 0}/${e.sets} sets of ${e.reps}`;
+          return `${e.name} ${done}${e.action !== "completed" ? ` (${e.action})` : ""}`;
+        }
+        const dur = `${e.completedDuration ?? 0}/${e.duration}s`;
+        return `${e.name} ${dur}${e.action !== "completed" ? ` (${e.action})` : ""}`;
+      })
+      .join("; ");
+    const status = s.completed ? "" : " (ended early)";
+    return `- ${s.date}${status}: ${exs}`;
+  });
+  return `Recent workouts (most recent last):\n${lines.join("\n")}`;
+}
+
+async function generateWorkout() {
+  const key = els.geminiKey.value.trim();
+  const req = els.genRequest.value.trim();
+  if (!key) {
+    els.genStatus.textContent = "Need an API key.";
+    els.geminiKey.focus();
+    return;
+  }
+  if (!req) {
+    els.genStatus.textContent = "Tell me what you want.";
+    els.genRequest.focus();
+    return;
+  }
+  localStorage.setItem(GEMINI_KEY_KEY, key);
+
+  const prompt = els.genHistory.checked
+    ? `${req}\n\n${summarizeRecentSessions() || "(no recent history yet)"}`
+    : req;
+
+  els.genBtn.disabled = true;
+  els.genStatus.textContent = "Thinking…";
+
+  try {
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
+      encodeURIComponent(key);
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.7 },
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Gemini ${res.status}: ${err.slice(0, 200)}`);
+    }
+    const data = await res.json();
+    const text =
+      data?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") ?? "";
+    if (!text) throw new Error("Empty response from Gemini.");
+    els.input.value = text.trim();
+    refreshPreview();
+    els.genStatus.textContent = "Done.";
+  } catch (e) {
+    console.error(e);
+    els.genStatus.textContent = String(e.message || e);
+  } finally {
+    els.genBtn.disabled = false;
+  }
+}
+
+els.genBtn.addEventListener("click", generateWorkout);
+els.geminiKey.value = localStorage.getItem(GEMINI_KEY_KEY) || "";
+els.geminiKey.addEventListener("change", () => {
+  localStorage.setItem(GEMINI_KEY_KEY, els.geminiKey.value.trim());
+});
 
 // ---------- Init ----------
 

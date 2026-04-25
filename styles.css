@@ -24,6 +24,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 17px;
   line-height: 1.5;
   transition: background-color 250ms ease;
   min-height: 100vh;
@@ -78,7 +79,7 @@ body.is-rest {
 
 .app__header h1 {
   margin: 0 0 4px;
-  font-size: 26px;
+  font-size: 28px;
 }
 
 .app__subtitle {
@@ -107,14 +108,14 @@ body.is-rest {
 .hint {
   margin: 0 0 10px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .hint code {
   background: var(--surface-2);
   padding: 1px 6px;
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .textarea {
@@ -165,18 +166,18 @@ body.is-rest {
   color: white;
 }
 
-.button--primary:hover:not(:disabled) {
-  background: var(--primary-hover);
-}
-
 .button--ghost {
   background: transparent;
   color: var(--text);
   border: 1px solid var(--border);
 }
 
-.button--ghost:hover:not(:disabled) {
-  border-color: var(--primary);
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.button--primary:active:not(:disabled) {
+  background: var(--primary-hover);
 }
 
 .link-btn {
@@ -188,8 +189,18 @@ body.is-rest {
   padding: 6px 8px;
 }
 
-.link-btn:hover {
-  color: var(--danger);
+@media (hover: hover) {
+  .button--primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+  }
+
+  .button--ghost:hover:not(:disabled) {
+    border-color: var(--primary);
+  }
+
+  .link-btn:hover {
+    color: var(--danger);
+  }
 }
 
 .summary {
@@ -216,8 +227,8 @@ body.is-rest {
   background: var(--surface-2);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 8px 10px;
-  font-size: 14px;
+  padding: 9px 12px;
+  font-size: 15px;
   color: var(--muted);
 }
 
@@ -257,7 +268,7 @@ body.is-rest {
 .active__subtext {
   text-align: center;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 16px;
   margin: 0 0 6px;
   min-height: 1em;
 }
@@ -269,10 +280,10 @@ body.is-rest {
 .active__description {
   text-align: center;
   color: var(--text);
-  font-size: 14px;
-  line-height: 1.45;
-  max-width: 480px;
-  margin: 0 auto 10px;
+  font-size: 17px;
+  line-height: 1.5;
+  max-width: 520px;
+  margin: 0 auto 12px;
   padding: 0 6px;
   white-space: pre-line;
 }
@@ -344,13 +355,14 @@ body.is-rest .active__timer {
 .active__next {
   text-align: center;
   color: var(--muted);
+  font-size: 16px;
   min-height: 1.5em;
 }
 
 .active__eta {
   text-align: center;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   margin-bottom: 32px;
   min-height: 1.2em;
 }
@@ -397,8 +409,10 @@ body.is-rest .active__timer {
   font-weight: 600;
 }
 
-.link-btn--inline:hover {
-  color: var(--primary-hover);
+@media (hover: hover) {
+  .link-btn--inline:hover {
+    color: var(--primary-hover);
+  }
 }
 
 /* History calendar */
@@ -493,13 +507,22 @@ body.is-rest .active__timer {
   flex-direction: column;
 }
 
+.plan__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
 .plan__label {
   font-size: 13px;
   font-weight: 600;
   color: var(--muted);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+}
+
+.plan__head .link-btn {
+  font-size: 13px;
+  padding: 4px 8px;
 }
 
 .plan__textarea {
@@ -509,6 +532,58 @@ body.is-rest .active__timer {
 .plan__status {
   margin-top: 12px;
   text-align: right;
+}
+
+.gen {
+  margin-bottom: 14px;
+}
+
+.gen[open] {
+  padding-bottom: 18px;
+}
+
+.gen__summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  list-style: none;
+  padding: 4px 0;
+}
+
+.gen__summary::-webkit-details-marker {
+  display: none;
+}
+
+.gen__summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+  color: var(--muted);
+  transition: transform 150ms ease;
+}
+
+.gen[open] .gen__summary::before {
+  transform: rotate(90deg);
+}
+
+.gen__input {
+  margin-bottom: 10px;
+  min-height: 44px;
+  font-family: inherit;
+}
+
+.gen__check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--muted);
+  margin: 4px 0 6px;
+}
+
+.gen__status {
+  align-self: center;
+  margin: 0 0 0 8px;
 }
 
 @media (max-width: 540px) {

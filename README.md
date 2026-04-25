@@ -32,6 +32,15 @@ JSON also works: `[{"name":"Squats","sets":3,"reps":10,"description":"…"}, {"n
 
 See [`claude-chat-instructions.md`](./claude-chat-instructions.md) for a system prompt you can paste into a Claude.ai project so Claude outputs workouts in this exact format.
 
+## Generate with Gemini (free, in-app)
+
+The Workout tab has a **Generate with Gemini** section. Paste a free API key from
+[aistudio.google.com/apikey](https://aistudio.google.com/apikey) (stored only on
+your device), describe what you want (*"30 min full body, no equipment"*), and
+the app calls `gemini-2.5-flash` with the same system prompt + a summary of your
+recent workouts so the suggestion adapts to what you've already done. The
+result fills the workout textarea — review, edit, then tap Start.
+
 ## Active screen
 
 - **Timed exercise:** countdown, beeps in the last 3s, auto-advances. Tap **Pause / Resume**.
