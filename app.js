@@ -22,6 +22,7 @@ const els = {
   sampleBtn: document.getElementById("sample-btn"),
   exerciseName: document.getElementById("exercise-name"),
   setText: document.getElementById("set-text"),
+  description: document.getElementById("exercise-desc"),
   timer: document.getElementById("timer"),
   nextUp: document.getElementById("next-up"),
   eta: document.getElementById("eta"),
@@ -81,6 +82,7 @@ function parseSetsReps(text) {
 
 function stripMetaFromName(text) {
   return text
+    .replace(/\*\*/g, "")
     .replace(/\b\d+\s*[xX×]\s*\d+\b\s*(?:reps?)?/g, "")
     .replace(/\b\d+\s*sets?\s*(?:of|x|×)\s*\d+\b\s*(?:reps?)?/gi, "")
     .replace(/\b\d+\s*(?:reps?|repetitions?)\b/gi, "")
@@ -97,17 +99,18 @@ function normalizeExercise(raw) {
   if (typeof raw === "string") return parseLine(raw);
   const name = String(raw.name ?? raw.exercise ?? "").trim();
   if (!name) return null;
+  const description = raw.description ? String(raw.description).trim() : "";
   if (raw.sets && raw.reps) {
-    return { name, type: "reps", sets: Number(raw.sets), reps: Number(raw.reps) };
+    return { name, type: "reps", sets: Number(raw.sets), reps: Number(raw.reps), description };
   }
   if (raw.reps && !raw.sets) {
-    return { name, type: "reps", sets: 1, reps: Number(raw.reps) };
+    return { name, type: "reps", sets: 1, reps: Number(raw.reps), description };
   }
   const duration =
     Number(raw.duration ?? raw.seconds ?? raw.time) ||
     parseDuration(String(raw.duration ?? "")) ||
     30;
-  return { name, type: "time", duration };
+  return { name, type: "time", duration, description };
 }
 
 function parseLine(line) {
@@ -133,12 +136,43 @@ function parseWorkout(text) {
     const list = Array.isArray(json) ? json : Array.isArray(json?.exercises) ? json.exercises : null;
     if (list) return list.map(normalizeExercise).filter(Boolean);
   } catch {}
-  return trimmed
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l && !/^[#=_-]{2,}$/.test(l))
-    .map(parseLine)
-    .filter(Boolean);
+
+  const lines = trimmed.split(/\r?\n/);
+  const hasBoldHeader = lines.some((l) => /\*\*[^*]+\*\*/.test(l));
+
+  if (!hasBoldHeader) {
+    return lines
+      .map((l) => l.trim())
+      .filter((l) => l && !/^[#=_-]{2,}$/.test(l))
+      .map(parseLine)
+      .filter(Boolean);
+  }
+
+  const exercises = [];
+  let descBuf = [];
+  for (const raw of lines) {
+    const line = raw.replace(/\s+$/, "");
+    const t = line.trim();
+    if (!t) {
+      descBuf.push("");
+      continue;
+    }
+    if (/^[#=_-]{2,}$/.test(t)) continue;
+    if (/\*\*[^*]+\*\*/.test(t)) {
+      if (exercises.length && descBuf.length) {
+        exercises[exercises.length - 1].description = descBuf.join("\n").trim();
+      }
+      descBuf = [];
+      const ex = parseLine(t);
+      if (ex) exercises.push(ex);
+    } else {
+      descBuf.push(line);
+    }
+  }
+  if (exercises.length && descBuf.length) {
+    exercises[exercises.length - 1].description = descBuf.join("\n").trim();
+  }
+  return exercises;
 }
 
 function formatTime(seconds) {
@@ -279,6 +313,7 @@ function updateActiveUI() {
   const ex = state.exercises[state.index];
   if (!ex) return;
   els.exerciseName.textContent = ex.name;
+  els.description.textContent = ex.description || "";
   els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
 
   document.body.classList.toggle("mode-reps", ex.type === "reps");

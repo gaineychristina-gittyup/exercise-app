@@ -6,13 +6,27 @@ Live at https://gaineychristina-gittyup.github.io/exercise-app/.
 
 ## Format
 
-One exercise per line.
+**Plain (one exercise per line):**
 
-- **Timed:** `Squats - 30s` · `Plank - 1 min` · `Push-ups - 0:45`
-- **Rep-based:** `Push-ups - 3x10` · `Squats - 3 sets of 10` · `Pull-ups - 6 reps`
-- **Rest:** `Rest - 15s` (always timed)
+- Timed: `Squats - 30s` · `Plank - 1 min` · `Push-ups - 0:45`
+- Rep-based: `Push-ups - 3x10` · `Squats - 3 sets of 10` · `Pull-ups - 6 reps`
+- Rest: `Rest - 15s` (always timed)
 
-JSON also works: `[{"name":"Squats","sets":3,"reps":10}, {"name":"Plank","duration":30}]`.
+**With descriptions** (shown on the active screen during the workout) — wrap each name in `**…**` and put the description on the lines below until the next bold header:
+
+```
+**Squats** - 3x10
+What to do: Stand feet shoulder-width, lower hips back and down, drive through your heels to stand.
+Target: Quads, glutes, hamstrings.
+Feel: Thighs and glutes.
+
+**Plank** - 30s
+What to do: Forearms on the floor, body straight from head to heels, brace your core.
+Target: Core, shoulders.
+Feel: Abs and lower back.
+```
+
+JSON also works: `[{"name":"Squats","sets":3,"reps":10,"description":"…"}, {"name":"Plank","duration":30}]`.
 
 ## Get a workout from Claude
 
