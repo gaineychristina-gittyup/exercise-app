@@ -31,6 +31,8 @@ const els = {
   prevBtn: document.getElementById("prev-btn"),
   endBtn: document.getElementById("end-btn"),
   newBtn: document.getElementById("new-btn"),
+  ringFg: document.getElementById("ring-fg"),
+  progressBar: document.getElementById("progressbar"),
   planEditor: document.getElementById("plan-editor"),
   planStatus: document.getElementById("plan-status"),
   calTitle: document.getElementById("cal-title"),
@@ -220,6 +222,7 @@ const state = {
   setIndex: 0,
   remaining: 0,
   paused: false,
+  awaitingNext: false,
   intervalId: null,
   wakeLock: null,
 };
@@ -282,15 +285,30 @@ function updateActiveUI() {
   document.body.classList.toggle("mode-time", ex.type !== "reps");
 
   if (ex.type === "reps") {
-    els.timer.textContent = `${ex.reps}`;
-    els.setText.textContent =
-      ex.sets > 1 ? `Set ${state.setIndex + 1} of ${ex.sets} · reps` : "reps";
-    els.pauseBtn.textContent = "Done set";
+    if (state.awaitingNext) {
+      els.timer.textContent = "✓";
+      els.setText.textContent = `${ex.sets} set${ex.sets === 1 ? "" : "s"} done`;
+      const isLast = state.index + 1 >= state.exercises.length;
+      els.pauseBtn.textContent = isLast ? "Finish" : "Next exercise";
+    } else {
+      els.timer.textContent = `${ex.reps}`;
+      els.setText.textContent =
+        ex.sets > 1 ? `Set ${state.setIndex + 1} of ${ex.sets} · reps` : "reps";
+      els.pauseBtn.textContent = "Done set";
+    }
   } else {
     els.timer.textContent = formatTime(state.remaining);
     els.setText.textContent = "";
     els.pauseBtn.textContent = state.paused ? "Resume" : "Pause";
+    const elapsed = ex.duration - state.remaining;
+    const pct = ex.duration > 0 ? Math.min(100, Math.max(0, (elapsed / ex.duration) * 100)) : 0;
+    els.ringFg.style.strokeDashoffset = pct;
   }
+
+  const totalEst = estimatedTotal(state.exercises);
+  const remainingEst = remainingEstimate();
+  const overall = totalEst > 0 ? Math.min(100, ((totalEst - remainingEst) / totalEst) * 100) : 0;
+  els.progressBar.style.width = `${overall}%`;
 
   const next = state.exercises[state.index + 1];
   els.nextUp.textContent = next ? `Next: ${next.name}` : "Last one";
@@ -326,8 +344,10 @@ function beginCurrent() {
   if (!ex) return finishWorkout();
   state.setIndex = 0;
   state.paused = false;
+  state.awaitingNext = false;
   clearInterval(state.intervalId);
   state.intervalId = null;
+  resetRing();
   if (ex.type === "reps") {
     updateActiveUI();
   } else {
@@ -337,15 +357,29 @@ function beginCurrent() {
   }
 }
 
+function resetRing() {
+  els.ringFg.style.transition = "none";
+  els.ringFg.style.strokeDashoffset = 0;
+  // Force reflow so the next change re-enables the transition.
+  void els.ringFg.getBoundingClientRect();
+  els.ringFg.style.transition = "";
+}
+
 function completeSet() {
   const ex = state.exercises[state.index];
   if (!ex || ex.type !== "reps") return;
-  state.setIndex += 1;
-  if (state.setIndex >= ex.sets) {
-    beep(880, 250);
+  if (state.awaitingNext) {
+    state.awaitingNext = false;
     advance(1);
-  } else {
+    return;
+  }
+  if (state.setIndex < ex.sets - 1) {
+    state.setIndex += 1;
     beep(660, 120);
+    updateActiveUI();
+  } else {
+    state.awaitingNext = true;
+    beep(880, 250);
     updateActiveUI();
   }
 }

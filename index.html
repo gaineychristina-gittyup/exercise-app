@@ -45,13 +45,22 @@
       </section>
 
       <section class="screen hidden" data-screen="active" aria-live="polite">
+        <div class="active__bar" aria-hidden="true">
+          <div class="active__bar-fill" id="progressbar"></div>
+        </div>
         <div class="active__top">
           <div class="active__progress" id="progress">1 of 1</div>
           <button id="end-btn" type="button" class="link-btn">End</button>
         </div>
         <div class="active__exercise" id="exercise-name">—</div>
         <div class="active__subtext" id="set-text"></div>
-        <div class="active__timer" id="timer">0:00</div>
+        <div class="timer-wrap">
+          <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="ring__bg" cx="50" cy="50" r="46" />
+            <circle class="ring__fg" id="ring-fg" cx="50" cy="50" r="46" pathLength="100" />
+          </svg>
+          <div class="active__timer" id="timer">0:00</div>
+        </div>
         <div class="active__next" id="next-up"></div>
         <div class="active__eta" id="eta"></div>
         <div class="active__actions">
