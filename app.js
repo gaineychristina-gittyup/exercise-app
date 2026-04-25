@@ -1,210 +1,259 @@
-const STORAGE_KEY = "exercise-tracker.entries.v1";
+const STORAGE_KEY = "workout-runner.last-input.v1";
 
-const form = document.getElementById("entry-form");
-const list = document.getElementById("entries");
-const emptyState = document.getElementById("empty-state");
-const clearAllButton = document.getElementById("clear-all");
+const screens = {
+  home: document.querySelector('[data-screen="home"]'),
+  active: document.querySelector('[data-screen="active"]'),
+  done: document.querySelector('[data-screen="done"]'),
+};
 
-let editingId = null;
+const els = {
+  input: document.getElementById("workout-input"),
+  preview: document.getElementById("preview-list"),
+  startBtn: document.getElementById("start-btn"),
+  sampleBtn: document.getElementById("sample-btn"),
+  exerciseName: document.getElementById("exercise-name"),
+  timer: document.getElementById("timer"),
+  nextUp: document.getElementById("next-up"),
+  progress: document.getElementById("progress"),
+  pauseBtn: document.getElementById("pause-btn"),
+  skipBtn: document.getElementById("skip-btn"),
+  prevBtn: document.getElementById("prev-btn"),
+  endBtn: document.getElementById("end-btn"),
+  newBtn: document.getElementById("new-btn"),
+};
 
-function loadEntries() {
+const SAMPLE = `Jumping Jacks - 30s
+Rest - 15s
+Squats - 40s
+Rest - 15s
+Push-ups - 40s
+Rest - 15s
+Plank - 45s
+Rest - 15s
+Lunges - 40s
+Rest - 15s
+High Knees - 30s
+Rest - 30s
+Cool down stretch - 1 min`;
+
+function showScreen(name) {
+  for (const [key, el] of Object.entries(screens)) {
+    el.classList.toggle("hidden", key !== name);
+  }
+}
+
+function parseDuration(text) {
+  let m = text.match(/(\d+):(\d{2})\b/);
+  if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  m = text.match(/(\d+(?:\.\d+)?)\s*(min|mins|minutes?|m)\b/i);
+  if (m) return Math.round(parseFloat(m[1]) * 60);
+  m = text.match(/(\d+)\s*(s|sec|secs|seconds?)\b/i);
+  if (m) return parseInt(m[1], 10);
+  return null;
+}
+
+function normalizeExercise(raw) {
+  if (!raw) return null;
+  if (typeof raw === "string") return parseLine(raw);
+  const name = String(raw.name ?? raw.exercise ?? "").trim();
+  if (!name) return null;
+  const duration =
+    Number(raw.duration ?? raw.seconds ?? raw.time) ||
+    parseDuration(String(raw.duration ?? "")) ||
+    30;
+  return { name, duration };
+}
+
+function parseLine(line) {
+  const cleaned = line
+    .replace(/^\s*(?:\d+[.)]\s*|[-*•]\s*)/, "")
+    .trim();
+  if (!cleaned) return null;
+  const duration = parseDuration(cleaned) ?? 30;
+  let name = cleaned
+    .replace(/\(?\s*\d+:\d{2}\s*\)?/, "")
+    .replace(/\(?\s*\d+(?:\.\d+)?\s*(?:min|mins|minutes?|m|s|sec|secs|seconds?)\b\s*\)?/i, "")
+    .replace(/\s*[-–—:]\s*$/, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (!name) name = cleaned;
+  return { name, duration };
+}
+
+function parseWorkout(text) {
+  const trimmed = (text ?? "").trim();
+  if (!trimmed) return [];
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+    const json = JSON.parse(trimmed);
+    const list = Array.isArray(json) ? json : Array.isArray(json?.exercises) ? json.exercises : null;
+    if (list) return list.map(normalizeExercise).filter(Boolean);
+  } catch {}
+  return trimmed
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l && !/^[#=_-]{2,}$/.test(l))
+    .map(parseLine)
+    .filter(Boolean);
+}
+
+function formatTime(seconds) {
+  const s = Math.max(0, Math.round(seconds));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r.toString().padStart(2, "0")}`;
+}
+
+function renderPreview(exercises) {
+  els.preview.innerHTML = "";
+  if (!exercises.length) return;
+  for (const ex of exercises) {
+    const li = document.createElement("li");
+    li.className = "preview__item";
+    li.textContent = `${ex.name} · ${formatTime(ex.duration)}`;
+    els.preview.append(li);
   }
 }
 
-function saveEntries(entries) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+function refreshPreview() {
+  const exercises = parseWorkout(els.input.value);
+  renderPreview(exercises);
+  els.startBtn.disabled = exercises.length === 0;
+  localStorage.setItem(STORAGE_KEY, els.input.value);
 }
 
-function formatDate(timestamp) {
-  const d = new Date(timestamp);
-  return d.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+const state = {
+  exercises: [],
+  index: 0,
+  remaining: 0,
+  paused: false,
+  intervalId: null,
+  wakeLock: null,
+};
+
+function beep(frequency = 880, durationMs = 150) {
+  try {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = frequency;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + durationMs / 1000);
+    osc.start();
+    osc.stop(ctx.currentTime + durationMs / 1000 + 0.05);
+  } catch {}
 }
 
-function renderViewEntry(entry) {
-  const li = document.createElement("li");
-  li.className = "entry";
-
-  const main = document.createElement("div");
-  main.className = "entry__main";
-
-  const title = document.createElement("span");
-  title.className = "entry__title";
-  title.textContent = entry.exercise;
-
-  const meta = document.createElement("span");
-  meta.className = "entry__meta";
-  const weightStr = entry.weight > 0 ? ` @ ${entry.weight} lb` : "";
-  meta.textContent = `${entry.sets} × ${entry.reps}${weightStr} · ${formatDate(entry.createdAt)}`;
-
-  main.append(title, meta);
-
-  if (entry.notes) {
-    const notes = document.createElement("span");
-    notes.className = "entry__notes";
-    notes.textContent = entry.notes;
-    main.append(notes);
-  }
-
-  const actions = document.createElement("div");
-  actions.className = "entry__actions";
-
-  const editBtn = document.createElement("button");
-  editBtn.type = "button";
-  editBtn.className = "entry__action";
-  editBtn.setAttribute("aria-label", `Edit ${entry.exercise}`);
-  editBtn.textContent = "Edit";
-  editBtn.addEventListener("click", () => {
-    editingId = entry.id;
-    render(loadEntries());
-  });
-
-  const delBtn = document.createElement("button");
-  delBtn.type = "button";
-  delBtn.className = "entry__action entry__action--danger";
-  delBtn.setAttribute("aria-label", `Delete ${entry.exercise}`);
-  delBtn.textContent = "Delete";
-  delBtn.addEventListener("click", () => removeEntry(entry.id));
-
-  actions.append(editBtn, delBtn);
-
-  li.append(main, actions);
-  return li;
+async function requestWakeLock() {
+  try {
+    if ("wakeLock" in navigator) {
+      state.wakeLock = await navigator.wakeLock.request("screen");
+    }
+  } catch {}
 }
 
-function renderEditEntry(entry) {
-  const li = document.createElement("li");
-  li.className = "entry entry--editing";
-
-  const editForm = document.createElement("form");
-  editForm.className = "entry-edit";
-  editForm.noValidate = true;
-
-  editForm.innerHTML = `
-    <div class="entry-edit__row">
-      <label>Exercise<input name="exercise" type="text" required /></label>
-    </div>
-    <div class="entry-edit__row entry-edit__row--split">
-      <label>Sets<input name="sets" type="number" min="1" required /></label>
-      <label>Reps<input name="reps" type="number" min="1" required /></label>
-      <label>Weight<input name="weight" type="number" min="0" step="0.5" /></label>
-    </div>
-    <div class="entry-edit__row">
-      <label>Notes<input name="notes" type="text" /></label>
-    </div>
-    <div class="entry-edit__actions">
-      <button type="button" class="button button--ghost" data-action="cancel">Cancel</button>
-      <button type="submit" class="button button--primary">Save</button>
-    </div>
-  `;
-
-  editForm.elements.namedItem("exercise").value = entry.exercise;
-  editForm.elements.namedItem("sets").value = entry.sets;
-  editForm.elements.namedItem("reps").value = entry.reps;
-  editForm.elements.namedItem("weight").value = entry.weight;
-  editForm.elements.namedItem("notes").value = entry.notes ?? "";
-
-  editForm.querySelector('[data-action="cancel"]').addEventListener("click", () => {
-    editingId = null;
-    render(loadEntries());
-  });
-
-  editForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const fd = new FormData(editForm);
-    const exercise = String(fd.get("exercise") ?? "").trim();
-    if (!exercise) return;
-    updateEntry(entry.id, {
-      exercise,
-      sets: Number(fd.get("sets")) || 1,
-      reps: Number(fd.get("reps")) || 1,
-      weight: Number(fd.get("weight")) || 0,
-      notes: String(fd.get("notes") ?? "").trim(),
-    });
-  });
-
-  li.append(editForm);
-  return li;
+function releaseWakeLock() {
+  try {
+    state.wakeLock?.release?.();
+  } catch {}
+  state.wakeLock = null;
 }
 
-function render(entries) {
-  list.innerHTML = "";
-  if (entries.length === 0) {
-    emptyState.classList.remove("hidden");
+function updateActiveUI() {
+  const ex = state.exercises[state.index];
+  if (!ex) return;
+  els.exerciseName.textContent = ex.name;
+  els.timer.textContent = formatTime(state.remaining);
+  els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
+  const next = state.exercises[state.index + 1];
+  els.nextUp.textContent = next ? `Next: ${next.name}` : "Last one";
+  els.pauseBtn.textContent = state.paused ? "Resume" : "Pause";
+  els.prevBtn.disabled = state.index === 0;
+  document.body.classList.toggle("is-rest", /rest/i.test(ex.name));
+}
+
+function tick() {
+  if (state.paused) return;
+  state.remaining -= 1;
+  if (state.remaining <= 0) {
+    beep(880, 250);
+    advance(1);
     return;
   }
-  emptyState.classList.add("hidden");
-
-  for (const entry of entries) {
-    const node = entry.id === editingId ? renderEditEntry(entry) : renderViewEntry(entry);
-    list.append(node);
-  }
+  if (state.remaining <= 3 && state.remaining > 0) beep(660, 80);
+  updateActiveUI();
 }
 
-function addEntry(data) {
-  const entries = loadEntries();
-  entries.unshift({
-    id: crypto.randomUUID(),
-    createdAt: Date.now(),
-    ...data,
-  });
-  saveEntries(entries);
-  render(entries);
+function beginCurrent() {
+  const ex = state.exercises[state.index];
+  if (!ex) return finishWorkout();
+  state.remaining = ex.duration;
+  updateActiveUI();
+  clearInterval(state.intervalId);
+  state.intervalId = setInterval(tick, 1000);
 }
 
-function updateEntry(id, data) {
-  const entries = loadEntries().map((e) => (e.id === id ? { ...e, ...data } : e));
-  saveEntries(entries);
-  editingId = null;
-  render(entries);
+function advance(delta) {
+  state.index += delta;
+  if (state.index >= state.exercises.length) return finishWorkout();
+  if (state.index < 0) state.index = 0;
+  beginCurrent();
 }
 
-function removeEntry(id) {
-  const entries = loadEntries().filter((e) => e.id !== id);
-  saveEntries(entries);
-  if (editingId === id) editingId = null;
-  render(entries);
+function startWorkout() {
+  const exercises = parseWorkout(els.input.value);
+  if (!exercises.length) return;
+  state.exercises = exercises;
+  state.index = 0;
+  state.paused = false;
+  showScreen("active");
+  requestWakeLock();
+  beginCurrent();
 }
 
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const formData = new FormData(form);
-  const exercise = String(formData.get("exercise") ?? "").trim();
-  if (!exercise) return;
+function finishWorkout() {
+  clearInterval(state.intervalId);
+  state.intervalId = null;
+  releaseWakeLock();
+  document.body.classList.remove("is-rest");
+  beep(660, 200);
+  setTimeout(() => beep(880, 350), 220);
+  showScreen("done");
+}
 
-  addEntry({
-    exercise,
-    sets: Number(formData.get("sets")) || 1,
-    reps: Number(formData.get("reps")) || 1,
-    weight: Number(formData.get("weight")) || 0,
-    notes: String(formData.get("notes") ?? "").trim(),
-  });
+function endWorkout() {
+  clearInterval(state.intervalId);
+  state.intervalId = null;
+  releaseWakeLock();
+  document.body.classList.remove("is-rest");
+  showScreen("home");
+}
 
-  form.reset();
-  form.elements.namedItem("sets").value = 3;
-  form.elements.namedItem("reps").value = 10;
-  form.elements.namedItem("weight").value = 0;
-  form.elements.namedItem("exercise").focus();
+els.input.addEventListener("input", refreshPreview);
+els.startBtn.addEventListener("click", startWorkout);
+els.sampleBtn.addEventListener("click", () => {
+  els.input.value = SAMPLE;
+  refreshPreview();
+  els.input.focus();
+});
+els.pauseBtn.addEventListener("click", () => {
+  state.paused = !state.paused;
+  if (!state.paused) requestWakeLock();
+  updateActiveUI();
+});
+els.skipBtn.addEventListener("click", () => advance(1));
+els.prevBtn.addEventListener("click", () => advance(-1));
+els.endBtn.addEventListener("click", endWorkout);
+els.newBtn.addEventListener("click", () => showScreen("home"));
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && state.intervalId) requestWakeLock();
 });
 
-clearAllButton.addEventListener("click", () => {
-  if (loadEntries().length === 0) return;
-  if (confirm("Delete all logged workouts?")) {
-    editingId = null;
-    saveEntries([]);
-    render([]);
-  }
-});
-
-render(loadEntries());
+const saved = localStorage.getItem(STORAGE_KEY);
+if (saved) els.input.value = saved;
+refreshPreview();

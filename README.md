@@ -1,10 +1,24 @@
-# Exercise Tracker
+# Workout Runner
 
-A small static web app for logging workouts. Entries persist locally via `localStorage`, so no backend is required.
+A guided-workout app. You paste a workout (from Claude or anywhere), tap **Start**, and it runs through each exercise with a big countdown timer, beep cues, and auto-advance — so you don't have to think about what's next.
+
+## How to use
+
+1. Open the site on your phone.
+2. Ask Claude (or anyone) for a workout. Each line is one move with a duration. Example:
+   ```
+   Squats - 40s
+   Rest - 15s
+   Push-ups - 40s
+   Plank - 1 min
+   ```
+   Or paste JSON like `[{"name":"Squats","duration":40}, ...]`.
+3. Tap **Use sample** if you just want to try it.
+4. Tap **Start workout**.
+
+During a workout: pause/resume, skip forward, go back, or end early. The screen stays awake (Wake Lock) while the timer runs. Lines containing the word "rest" tint the screen green.
 
 ## Run locally
-
-Open `index.html` directly in a browser, or serve the folder:
 
 ```sh
 npm start
@@ -12,24 +26,14 @@ npm start
 
 Then visit http://localhost:3000.
 
-## Use it on your phone
+## Deployed at
 
-After this branch is merged to `main`, GitHub Actions will deploy to GitHub Pages. To enable Pages once:
-
-1. Go to **Settings → Pages** on the repo.
-2. Set **Source** to **GitHub Actions**.
-
-The next push to `main` will publish at:
-
-```
 https://gaineychristina-gittyup.github.io/exercise-app/
-```
 
-Open that URL on your phone — entries are stored per-device in `localStorage`.
+GitHub Actions auto-deploys on push to `main` via `.github/workflows/pages.yml`.
 
 ## Files
 
-- `index.html` — markup and form
-- `styles.css` — styles (with mobile breakpoint)
-- `app.js` — entry list, persistence, add/edit/delete handlers
-- `.github/workflows/pages.yml` — auto-deploy to GitHub Pages on push to `main`
+- `index.html` — markup (home / active / done screens)
+- `styles.css` — styles, with mobile breakpoint and rest-state theming
+- `app.js` — workout parser, timer state machine, audio cues, wake lock

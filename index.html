@@ -2,53 +2,60 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Exercise Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Workout Runner</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app">
-      <header class="app__header">
-        <h1>Exercise Tracker</h1>
-        <p class="app__subtitle">Log your workouts. Stay consistent.</p>
-      </header>
+      <section class="screen" data-screen="home">
+        <header class="app__header">
+          <h1>Workout Runner</h1>
+          <p class="app__subtitle">Paste a workout. Tap start. Move.</p>
+        </header>
 
-      <section class="card" aria-labelledby="log-heading">
-        <h2 id="log-heading">Log a workout</h2>
-        <form id="entry-form" class="form" autocomplete="off">
-          <div class="form__row">
-            <label for="exercise">Exercise</label>
-            <input id="exercise" name="exercise" type="text" required placeholder="Squats" />
+        <div class="card">
+          <label class="label" for="workout-input">Your workout</label>
+          <p class="hint">
+            One exercise per line. Include a duration like <code>30s</code>, <code>1 min</code>, or <code>0:45</code>.
+            JSON also works.
+          </p>
+          <textarea
+            id="workout-input"
+            class="textarea"
+            rows="10"
+            spellcheck="false"
+            placeholder="Squats - 40s&#10;Rest - 15s&#10;Push-ups - 40s&#10;Rest - 15s&#10;Plank - 1 min&#10;Rest - 15s&#10;Lunges - 40s"
+          ></textarea>
+          <div class="row row--actions">
+            <button id="sample-btn" type="button" class="button button--ghost">Use sample</button>
+            <button id="start-btn" type="button" class="button button--primary" disabled>Start workout</button>
           </div>
-          <div class="form__row form__row--split">
-            <div>
-              <label for="sets">Sets</label>
-              <input id="sets" name="sets" type="number" min="1" required value="3" />
-            </div>
-            <div>
-              <label for="reps">Reps</label>
-              <input id="reps" name="reps" type="number" min="1" required value="10" />
-            </div>
-            <div>
-              <label for="weight">Weight (lb)</label>
-              <input id="weight" name="weight" type="number" min="0" step="0.5" value="0" />
-            </div>
-          </div>
-          <div class="form__row">
-            <label for="notes">Notes</label>
-            <input id="notes" name="notes" type="text" placeholder="optional" />
-          </div>
-          <button type="submit" class="button button--primary">Add entry</button>
-        </form>
+          <ul id="preview-list" class="preview" aria-live="polite"></ul>
+        </div>
       </section>
 
-      <section class="card" aria-labelledby="history-heading">
-        <div class="card__header">
-          <h2 id="history-heading">History</h2>
-          <button id="clear-all" type="button" class="button button--ghost">Clear all</button>
+      <section class="screen hidden" data-screen="active" aria-live="polite">
+        <div class="active__top">
+          <div class="active__progress" id="progress">1 of 1</div>
+          <button id="end-btn" type="button" class="link-btn">End</button>
         </div>
-        <ul id="entries" class="entries" aria-live="polite"></ul>
-        <p id="empty-state" class="empty-state">No workouts logged yet.</p>
+        <div class="active__exercise" id="exercise-name">—</div>
+        <div class="active__timer" id="timer">0:00</div>
+        <div class="active__next" id="next-up"></div>
+        <div class="active__actions">
+          <button id="prev-btn" type="button" class="button button--ghost">Prev</button>
+          <button id="pause-btn" type="button" class="button button--primary">Pause</button>
+          <button id="skip-btn" type="button" class="button button--ghost">Skip</button>
+        </div>
+      </section>
+
+      <section class="screen hidden" data-screen="done">
+        <div class="done">
+          <div class="done__title">Done</div>
+          <p class="done__subtitle">Nice work.</p>
+          <button id="new-btn" type="button" class="button button--primary">New workout</button>
+        </div>
       </section>
     </main>
 
