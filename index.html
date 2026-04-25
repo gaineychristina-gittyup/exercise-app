@@ -21,6 +21,27 @@
           <p class="app__subtitle">Paste a workout. Tap start. Move.</p>
         </header>
 
+        <details class="card gen">
+          <summary class="gen__summary">Generate with Gemini</summary>
+          <p class="hint">
+            Paste your free Gemini API key (from
+            <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>)
+            — stored only on this device. Then describe what you want.
+          </p>
+          <label class="label" for="gemini-key">API key</label>
+          <input id="gemini-key" type="password" autocomplete="off" class="textarea gen__input" placeholder="AIza…" />
+          <label class="label" for="gen-request">What do you want?</label>
+          <input id="gen-request" type="text" class="textarea gen__input" placeholder="30 min full body, no equipment, harder than yesterday" />
+          <label class="gen__check">
+            <input id="gen-history" type="checkbox" checked />
+            Use my recent history
+          </label>
+          <div class="row row--actions">
+            <button id="gen-btn" type="button" class="button button--primary">Generate</button>
+            <span id="gen-status" class="hint gen__status" aria-live="polite"></span>
+          </div>
+        </details>
+
         <div class="card">
           <label class="label" for="workout-input">Your workout</label>
           <p class="hint">
