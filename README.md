@@ -1,4 +1,4 @@
-# Workout Runner
+# Claude Workout Buddy
 
 A guided-workout app. You paste a workout (from Claude or anywhere), tap **Start**, and it runs through each exercise with a big countdown timer, beep cues, and auto-advance — so you don't have to think about what's next.
 
