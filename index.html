@@ -8,6 +8,13 @@
   </head>
   <body>
     <main class="app">
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button type="button" class="tab tab--active" data-tab="workout" role="tab" aria-selected="true">Workout</button>
+        <button type="button" class="tab" data-tab="plan" role="tab" aria-selected="false">Plan</button>
+        <button type="button" class="tab" data-tab="history" role="tab" aria-selected="false">History</button>
+      </nav>
+
+      <div class="tab-panel" data-panel="workout">
       <section class="screen" data-screen="home">
         <header class="app__header">
           <h1>Claude Workout Buddy</h1>
@@ -17,32 +24,43 @@
         <div class="card">
           <label class="label" for="workout-input">Your workout</label>
           <p class="hint">
-            One exercise per line. Include a duration like <code>30s</code>, <code>1 min</code>, or <code>0:45</code>.
-            JSON also works.
+            One exercise per line. Use a duration like <code>30s</code> / <code>1 min</code> for timed,
+            or <code>3x10</code> / <code>3 sets of 10</code> for rep-based.
           </p>
           <textarea
             id="workout-input"
             class="textarea"
             rows="10"
             spellcheck="false"
-            placeholder="Squats - 40s&#10;Rest - 15s&#10;Push-ups - 40s&#10;Rest - 15s&#10;Plank - 1 min&#10;Rest - 15s&#10;Lunges - 40s"
+            placeholder="Squats - 3x10&#10;Push-ups - 3x12&#10;Plank - 30s&#10;Lunges - 3 sets of 10&#10;Burpees - 30s"
           ></textarea>
           <div class="row row--actions">
             <button id="sample-btn" type="button" class="button button--ghost">Use sample</button>
             <button id="start-btn" type="button" class="button button--primary" disabled>Start workout</button>
           </div>
+          <p id="today-plan" class="today-plan" hidden></p>
           <p id="summary" class="summary" aria-live="polite"></p>
           <ul id="preview-list" class="preview" aria-live="polite"></ul>
         </div>
       </section>
 
       <section class="screen hidden" data-screen="active" aria-live="polite">
+        <div class="active__bar" aria-hidden="true">
+          <div class="active__bar-fill" id="progressbar"></div>
+        </div>
         <div class="active__top">
           <div class="active__progress" id="progress">1 of 1</div>
           <button id="end-btn" type="button" class="link-btn">End</button>
         </div>
         <div class="active__exercise" id="exercise-name">—</div>
-        <div class="active__timer" id="timer">0:00</div>
+        <div class="active__subtext" id="set-text"></div>
+        <div class="timer-wrap">
+          <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+            <circle class="ring__bg" cx="50" cy="50" r="46" />
+            <circle class="ring__fg" id="ring-fg" cx="50" cy="50" r="46" pathLength="100" />
+          </svg>
+          <div class="active__timer" id="timer">0:00</div>
+        </div>
         <div class="active__next" id="next-up"></div>
         <div class="active__eta" id="eta"></div>
         <div class="active__actions">
@@ -59,6 +77,37 @@
           <button id="new-btn" type="button" class="button button--primary">New workout</button>
         </div>
       </section>
+      </div>
+
+      <div class="tab-panel hidden" data-panel="plan">
+        <header class="app__header">
+          <h1>Weekly plan</h1>
+          <p class="app__subtitle">Set a workout for each day. Today's plan auto-loads on the Workout tab.</p>
+        </header>
+        <div class="card">
+          <div id="plan-editor" class="plan"></div>
+          <p id="plan-status" class="hint plan__status" aria-live="polite">Saved automatically.</p>
+        </div>
+      </div>
+
+      <div class="tab-panel hidden" data-panel="history">
+        <header class="app__header">
+          <h1>History</h1>
+          <p class="app__subtitle">An X marks each day you finished a workout.</p>
+        </header>
+        <div class="card">
+          <div class="cal__nav">
+            <button type="button" class="link-btn" id="cal-prev" aria-label="Previous month">‹</button>
+            <div class="cal__title" id="cal-title">—</div>
+            <button type="button" class="link-btn" id="cal-next" aria-label="Next month">›</button>
+          </div>
+          <div class="cal__dow" aria-hidden="true">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+          </div>
+          <div id="cal-grid" class="cal__grid" role="grid"></div>
+          <p id="cal-stats" class="summary" aria-live="polite"></p>
+        </div>
+      </div>
     </main>
 
     <script src="./app.js" type="module"></script>

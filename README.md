@@ -1,22 +1,31 @@
 # Claude Workout Buddy
 
-A guided-workout app. You paste a workout (from Claude or anywhere), tap **Start**, and it runs through each exercise with a big countdown timer, beep cues, and auto-advance — so you don't have to think about what's next.
+A guided-workout app. You paste a workout (from Claude or anywhere), tap **Start**, and it runs each exercise hands-free — countdown timer for timed moves, big "Done set" button for rep-based moves.
 
-## How to use
+Live at https://gaineychristina-gittyup.github.io/exercise-app/.
 
-1. Open the site on your phone.
-2. Ask Claude (or anyone) for a workout. Each line is one move with a duration. Example:
-   ```
-   Squats - 40s
-   Rest - 15s
-   Push-ups - 40s
-   Plank - 1 min
-   ```
-   Or paste JSON like `[{"name":"Squats","duration":40}, ...]`.
-3. Tap **Use sample** if you just want to try it.
-4. Tap **Start workout**.
+## Format
 
-During a workout: pause/resume, skip forward, go back, or end early. The screen stays awake (Wake Lock) while the timer runs. Lines containing the word "rest" tint the screen green.
+One exercise per line.
+
+- **Timed:** `Squats - 30s` · `Plank - 1 min` · `Push-ups - 0:45`
+- **Rep-based:** `Push-ups - 3x10` · `Squats - 3 sets of 10` · `Pull-ups - 6 reps`
+- **Rest:** `Rest - 15s` (always timed)
+
+JSON also works: `[{"name":"Squats","sets":3,"reps":10}, {"name":"Plank","duration":30}]`.
+
+## Get a workout from Claude
+
+See [`claude-chat-instructions.md`](./claude-chat-instructions.md) for a system prompt you can paste into a Claude.ai project so Claude outputs workouts in this exact format.
+
+## Active screen
+
+- **Timed exercise:** countdown, beeps in the last 3s, auto-advances. Tap **Pause / Resume**.
+- **Rep-based exercise:** shows reps + "Set k of n", tap **Done set** to advance. No timer — rest as long as you want.
+- **Skip / Prev:** jump exercises.
+- **Wake Lock:** screen stays on during a workout.
+- **Rest theming:** lines named "Rest" tint the screen green.
+- **ETA:** home + active screens show how long the workout takes and the clock time you'll finish (rep-based estimates use ~45s/set).
 
 ## Run locally
 
@@ -26,14 +35,12 @@ npm start
 
 Then visit http://localhost:3000.
 
-## Deployed at
-
-https://gaineychristina-gittyup.github.io/exercise-app/
+## Deploy
 
 GitHub Actions auto-deploys on push to `main` via `.github/workflows/pages.yml`.
 
 ## Files
 
-- `index.html` — markup (home / active / done screens)
-- `styles.css` — styles, with mobile breakpoint and rest-state theming
-- `app.js` — workout parser, timer state machine, audio cues, wake lock
+- `index.html` / `styles.css` / `app.js` — the app
+- `claude-chat-instructions.md` — copy-paste system prompt for Claude.ai
+- `.github/workflows/pages.yml` — Pages deploy workflow
