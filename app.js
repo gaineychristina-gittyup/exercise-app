@@ -910,6 +910,35 @@ els.geminiKey.value = localStorage.getItem(GEMINI_KEY_KEY) || "";
 els.geminiKey.addEventListener("input", () => {
   const v = els.geminiKey.value.trim();
   if (v) localStorage.setItem(GEMINI_KEY_KEY, v);
+  const status = document.getElementById("settings-status");
+  if (status) status.textContent = v ? "Saved." : "";
+});
+
+// ---------- Settings modal ----------
+
+const settingsModal = document.getElementById("settings-modal");
+const settingsBtn = document.getElementById("settings-btn");
+const openSettingsLink = document.getElementById("gen-open-settings");
+
+function openSettings() {
+  if (!settingsModal) return;
+  settingsModal.hidden = false;
+  document.body.classList.add("modal-open");
+}
+
+function closeSettings() {
+  if (!settingsModal) return;
+  settingsModal.hidden = true;
+  document.body.classList.remove("modal-open");
+}
+
+settingsBtn?.addEventListener("click", openSettings);
+openSettingsLink?.addEventListener("click", openSettings);
+settingsModal?.querySelectorAll("[data-close-modal]").forEach((el) => {
+  el.addEventListener("click", closeSettings);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && settingsModal && !settingsModal.hidden) closeSettings();
 });
 
 // ---------- Init ----------
