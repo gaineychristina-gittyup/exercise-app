@@ -214,6 +214,20 @@ body.is-rest {
   display: none;
 }
 
+.equipment {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.equipment:empty {
+  display: none;
+}
+
 .preview {
   list-style: none;
   margin: 8px 0 0;

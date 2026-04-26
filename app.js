@@ -19,6 +19,7 @@ const els = {
   input: document.getElementById("workout-input"),
   preview: document.getElementById("preview-list"),
   summary: document.getElementById("summary"),
+  equipment: document.getElementById("equipment"),
   todayPlan: document.getElementById("today-plan"),
   startBtn: document.getElementById("start-btn"),
   sampleBtn: document.getElementById("sample-btn"),
@@ -210,6 +211,29 @@ function totalDuration(exercises) {
   return exercises.reduce((s, e) => s + (Number(e.duration) || 0), 0);
 }
 
+function extractEquipmentLine(description) {
+  if (!description) return "";
+  const m = description.match(/^\s*Equipment:\s*(.+?)\s*$/im);
+  return m ? m[1].trim() : "";
+}
+
+function aggregateEquipment(exercises) {
+  const seen = new Map(); // lowercase key -> original
+  for (const ex of exercises) {
+    const raw = extractEquipmentLine(ex.description);
+    if (!raw) continue;
+    if (/^(none|nothing|n\/a|bodyweight)\.?$/i.test(raw)) continue;
+    for (const part of raw.split(/\s*(?:,|\band\b|&|\+)\s*/i)) {
+      const item = part.replace(/\.$/, "").trim();
+      if (!item) continue;
+      const key = item.toLowerCase();
+      if (/^(none|nothing|n\/a|bodyweight)$/i.test(key)) continue;
+      if (!seen.has(key)) seen.set(key, item);
+    }
+  }
+  return [...seen.values()];
+}
+
 function totalSets(exercises) {
   return exercises.reduce((s, e) => s + (e.type === "reps" ? Number(e.sets) || 0 : 0), 0);
 }
@@ -254,6 +278,12 @@ function refreshPreview() {
   } else {
     els.summary.textContent = `${formatDuration(time)} timed + ${sets} sets · ~done at ${formatEta(estimatedTotal(exercises))}`;
   }
+  const equipment = aggregateEquipment(exercises);
+  els.equipment.textContent = equipment.length
+    ? `Equipment: ${equipment.join(", ")}`
+    : exercises.length
+    ? "Equipment: none (bodyweight)"
+    : "";
   els.startBtn.disabled = exercises.length === 0;
   localStorage.setItem(STORAGE_KEY, els.input.value);
 }
@@ -782,11 +812,14 @@ Each exercise is a block of lines:
   What to do: <one or two sentences on form>.
   Target: <muscle groups>.
   Feel: <where you should feel it>.
+  Equipment: <gear needed, or "None">.
+  No weights: <substitution if equipment is needed, otherwise omit this line>.
 
 Format rules (strict):
 - The header line MUST wrap the exercise name in **double asterisks**.
 - Header is followed by " - " then either a duration ("30s", "45s", "1 min", "1:30"), or sets x reps ("3x10", "3 sets of 10"), or just reps ("10 reps").
-- Description lines (What to do / Target / Feel) follow the header.
+- Description lines follow the header. Always include Equipment. Include "No weights:" only when equipment is required (a specific bodyweight substitution).
+- Equipment values should be short and concrete: "One dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate multiple items.
 - Separate exercises with a single blank line.
 - Rest periods: "**Rest** - 15s" with no description below it. Only between hard timed intervals — not between rep-based exercises.
 - Use plain hyphens, Title Case names.

@@ -29,6 +29,8 @@ Each exercise is a block of lines:
   What to do: <one or two sentences on form>.
   Target: <muscle groups>.
   Feel: <where you should feel it>.
+  Equipment: <gear needed, or "None">.
+  No weights: <bodyweight substitution> (only include when Equipment is required).
 
 Format rules (strict):
 - The header line MUST wrap the exercise name in **double asterisks** so
@@ -36,8 +38,14 @@ Format rules (strict):
     - a duration: "30s", "45s", "1 min", "1:30"
     - or sets x reps: "3x10", "3 sets of 10"
     - or just reps: "10 reps"
-- The three description lines (What to do / Target / Feel) follow the
-  header and stay short (one sentence each is ideal).
+- The description lines (What to do / Target / Feel / Equipment / No weights)
+  follow the header and stay short (one sentence each is ideal).
+- ALWAYS include the Equipment line. Use short, concrete values: "One
+  dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate
+  multiple items. The app aggregates these to show what gear is needed
+  before the workout starts.
+- Include "No weights:" only when Equipment lists actual gear — give a
+  bodyweight substitution the user can do instead.
 - Separate exercises with a single blank line.
 - Rest periods: "**Rest** - 15s" with NO description lines below it.
   Add rest only between hard timed intervals — don't add rest between
@@ -55,31 +63,39 @@ Example response:
 What to do: Jump while spreading legs out and raising arms overhead, then return.
 Target: Full body cardio, calves, shoulders.
 Feel: Heart rate climbing, light burn in shoulders.
+Equipment: None.
 
-**Squats** - 3x10
-What to do: Stand with feet shoulder-width apart, lower hips back and down as if sitting in a chair, drive through your heels to stand.
-Target: Quads, glutes, hamstrings.
+**Goblet Squats** - 3x10
+What to do: Hold a dumbbell at your chest, lower hips back and down, drive through your heels to stand.
+Target: Quads, glutes, core.
 Feel: Thighs and glutes.
+Equipment: One dumbbell or kettlebell.
+No weights: Bodyweight squat with arms extended in front for balance.
 
 **Push-ups** - 3x10
 What to do: From plank position, lower chest until it nearly touches the floor, push back up keeping a straight line from head to heels.
 Target: Chest, triceps, shoulders, core.
 Feel: Chest, triceps, and shoulders.
+Equipment: None.
+
+**Bent-over Rows** - 3x10
+What to do: Hinge at hips with a flat back, pull dumbbells to ribs, squeeze shoulder blades, lower with control.
+Target: Lats, rhomboids, biceps.
+Feel: Mid-back and biceps.
+Equipment: Two dumbbells.
+No weights: Inverted rows under a sturdy table, body straight.
 
 **Plank** - 30s
 What to do: Forearms on the floor, body in a straight line from head to heels, brace your core and squeeze your glutes.
 Target: Core, shoulders, glutes.
 Feel: Abs and lower back.
-
-**Lunges** - 3 sets of 10
-What to do: Step forward with one leg, lower until both knees bend ~90°, push back to standing. Alternate legs.
-Target: Quads, glutes, hamstrings.
-Feel: Front leg quad and glute.
+Equipment: None.
 
 **Mountain Climbers** - 30s
 What to do: From plank, drive knees toward chest one at a time as fast as you can stay controlled.
 Target: Core, shoulders, hip flexors, cardio.
 Feel: Abs and shoulders, lungs working.
+Equipment: None.
 ```
 
 ---
