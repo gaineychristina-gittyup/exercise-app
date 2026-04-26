@@ -34,6 +34,7 @@ const els = {
   skipBtn: document.getElementById("skip-btn"),
   prevBtn: document.getElementById("prev-btn"),
   endBtn: document.getElementById("end-btn"),
+  holdBtn: document.getElementById("hold-btn"),
   newBtn: document.getElementById("new-btn"),
   clearBtn: document.getElementById("clear-btn"),
   ringFg: document.getElementById("ring-fg"),
@@ -45,6 +46,7 @@ const els = {
   calStats: document.getElementById("cal-stats"),
   calPrev: document.getElementById("cal-prev"),
   calNext: document.getElementById("cal-next"),
+  calMuscles: document.getElementById("cal-muscles"),
   geminiKey: document.getElementById("gemini-key"),
   genRequest: document.getElementById("gen-request"),
   genHistory: document.getElementById("gen-history"),
@@ -217,6 +219,20 @@ function extractEquipmentLine(description) {
   return m ? m[1].trim() : "";
 }
 
+function extractTargetLine(description) {
+  if (!description) return "";
+  const m = description.match(/^\s*Target:\s*(.+?)\s*$/im);
+  return m ? m[1].trim() : "";
+}
+
+function splitMuscles(text) {
+  if (!text) return [];
+  return text
+    .split(/\s*(?:,|\band\b|&|\+|\/)\s*/i)
+    .map((s) => s.replace(/\.$/, "").trim().toLowerCase())
+    .filter((s) => s && !/^(none|n\/a|cardio)$/i.test(s));
+}
+
 function aggregateEquipment(exercises) {
   const seen = new Map(); // lowercase key -> original
   for (const ex of exercises) {
@@ -310,6 +326,7 @@ function captureCurrent(action) {
     type: ex.type,
     elapsed: state.elapsed,
     action,
+    target: extractTargetLine(ex.description || ""),
   };
   if (ex.type === "time") {
     base.duration = ex.duration;
@@ -416,11 +433,15 @@ function updateActiveUI() {
       els.setText.textContent = `${ex.sets} set${ex.sets === 1 ? "" : "s"} done · ${formatTime(state.elapsed)}`;
       const isLast = state.index + 1 >= state.exercises.length;
       els.pauseBtn.textContent = isLast ? "Finish" : "Next exercise";
+      els.pauseBtn.disabled = false;
     } else {
       els.timer.textContent = `${ex.reps}`;
       const setLabel = ex.sets > 1 ? `Set ${state.setIndex + 1} of ${ex.sets}` : "Reps";
-      els.setText.textContent = `${setLabel} · ${formatTime(state.elapsed)}`;
+      els.setText.textContent = state.paused
+        ? `${setLabel} · paused`
+        : `${setLabel} · ${formatTime(state.elapsed)}`;
       els.pauseBtn.textContent = "Done set";
+      els.pauseBtn.disabled = state.paused;
     }
   } else {
     els.timer.textContent = formatTime(state.remaining);
@@ -450,6 +471,13 @@ function updateActiveUI() {
   }
 
   els.prevBtn.disabled = state.index === 0;
+  if (els.holdBtn) {
+    els.holdBtn.classList.toggle("is-paused", state.paused);
+    els.holdBtn.setAttribute("aria-label", state.paused ? "Resume" : "Pause");
+    els.holdBtn.innerHTML = state.paused
+      ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><path d="M6 4l14 8-14 8V4z"/></svg>'
+      : '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  }
   document.body.classList.toggle("is-rest", /rest/i.test(ex.name));
 }
 
@@ -584,6 +612,11 @@ els.skipBtn.addEventListener("click", () => {
 });
 els.prevBtn.addEventListener("click", () => advance(-1));
 els.endBtn.addEventListener("click", endWorkout);
+els.holdBtn?.addEventListener("click", () => {
+  state.paused = !state.paused;
+  if (!state.paused) requestWakeLock();
+  updateActiveUI();
+});
 els.newBtn.addEventListener("click", () => showScreen("home"));
 
 document.addEventListener("visibilitychange", () => {
@@ -653,13 +686,41 @@ function renderCalendar() {
     els.calGrid.append(cell);
   }
 
-  const monthDone = [...history].filter((k) => k.startsWith(
-    `${year}-${String(month + 1).padStart(2, "0")}`
-  )).length;
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+  const monthDone = [...history].filter((k) => k.startsWith(monthPrefix)).length;
   els.calStats.textContent =
     monthDone === 0
       ? "No workouts yet this month."
       : `${monthDone} workout${monthDone === 1 ? "" : "s"} this month · ${currentStreak(history)}-day streak`;
+
+  if (els.calMuscles) {
+    const sessions = loadSessions().filter((s) => s.date && s.date.startsWith(monthPrefix));
+    const counts = new Map();
+    for (const s of sessions) {
+      for (const ex of s.exercises || []) {
+        for (const m of splitMuscles(ex.target || "")) {
+          counts.set(m, (counts.get(m) || 0) + 1);
+        }
+      }
+    }
+    if (counts.size === 0) {
+      els.calMuscles.innerHTML = "";
+    } else {
+      const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+      const head = document.createElement("div");
+      head.className = "muscles__head";
+      head.textContent = "Muscles worked this month";
+      const list = document.createElement("div");
+      list.className = "muscles__list";
+      for (const [name, n] of sorted) {
+        const chip = document.createElement("span");
+        chip.className = "muscle";
+        chip.innerHTML = `<span class="muscle__name">${name}</span><span class="muscle__count">${n}</span>`;
+        list.append(chip);
+      }
+      els.calMuscles.replaceChildren(head, list);
+    }
+  }
 }
 
 function currentStreak(history) {

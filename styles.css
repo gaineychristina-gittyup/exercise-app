@@ -86,6 +86,23 @@ body.is-rest {
   flex: none;
 }
 
+.icon-btn--small {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.icon-btn.is-paused {
+  color: var(--primary);
+  border-color: rgba(240, 165, 116, 0.4);
+}
+
+.active__top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .icon-btn:active {
   transform: scale(0.97);
 }
@@ -410,10 +427,10 @@ body.modal-open {
 .active__description {
   text-align: center;
   color: var(--text);
-  font-size: 17px;
-  line-height: 1.5;
-  max-width: 520px;
-  margin: 0 auto 12px;
+  font-size: 19px;
+  line-height: 1.55;
+  max-width: 540px;
+  margin: 0 auto 14px;
   padding: 0 6px;
   white-space: pre-line;
 }
@@ -744,4 +761,49 @@ body.mode-time .active__timer {
   .cal__day {
     font-size: 12px;
   }
+}
+
+.muscles {
+  margin-top: 16px;
+}
+
+.muscles:empty {
+  display: none;
+}
+
+.muscles__head {
+  font-size: 13px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.muscles__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.muscle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.muscle__count {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
