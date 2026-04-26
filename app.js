@@ -804,7 +804,7 @@ for (const tab of tabs) {
 
 // ---------- Gemini ----------
 
-const GEMINI_SYSTEM_PROMPT = `You generate workout plans for the "Claude Workout Buddy" app. The user pastes your output directly into the app, so respond with ONLY the workout — no preamble, no closing remarks, no headings, no numbering, no code fences.
+const GEMINI_SYSTEM_PROMPT = `You generate workout plans for the "GaineyFit" app. The user pastes your output directly into the app, so respond with ONLY the workout — no preamble, no closing remarks, no headings, no numbering, no code fences.
 
 Each exercise is a block of lines:
 

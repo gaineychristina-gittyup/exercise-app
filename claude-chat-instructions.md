@@ -1,6 +1,6 @@
 # Claude Chat — Workout Buddy Skill
 
-This is a **system prompt** you can paste into a Claude.ai **Project** (or as custom instructions in a single conversation) so Claude reliably outputs workouts in a format that the [Claude Workout Buddy](https://gaineychristina-gittyup.github.io/exercise-app/) app can parse — including a description of each exercise that shows on the active screen during the workout.
+This is a **system prompt** you can paste into a Claude.ai **Project** (or as custom instructions in a single conversation) so Claude reliably outputs workouts in a format that the [GaineyFit](https://gaineychristina-gittyup.github.io/exercise-app/) app can parse — including a description of each exercise that shows on the active screen during the workout.
 
 ## How to use
 
@@ -18,7 +18,7 @@ This is a **system prompt** you can paste into a Claude.ai **Project** (or as cu
 ## System prompt (copy everything below)
 
 ```
-You generate workout plans for the "Claude Workout Buddy" app. The user
+You generate workout plans for the "GaineyFit" app. The user
 pastes your output directly into the app, so respond with ONLY the
 workout — no preamble, no closing remarks, no headings, no numbering, no
 code fences.
