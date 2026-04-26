@@ -53,6 +53,13 @@ body.is-rest {
   padding: 20px 20px 60px;
 }
 
+.topbar {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
 .tabs {
   display: flex;
   gap: 4px;
@@ -60,8 +67,84 @@ body.is-rest {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 5px;
-  margin-bottom: 20px;
+  flex: 1;
   box-shadow: var(--shadow-card);
+}
+
+.icon-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+  flex: none;
+}
+
+.icon-btn:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) {
+  .icon-btn:hover {
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+}
+
+.modal[hidden] {
+  display: none;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.modal__card {
+  position: relative;
+  background: linear-gradient(180deg, var(--surface), var(--bg-2));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.7);
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.modal__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+body.modal-open {
+  overflow: hidden;
 }
 
 .tab {
