@@ -853,6 +853,7 @@ function summarizeRecentSessions(maxDays = 14) {
 
 async function generateWorkout() {
   const key = els.geminiKey.value.trim();
+  if (key) localStorage.setItem(GEMINI_KEY_KEY, key);
   const req = els.genRequest.value.trim();
   if (!key) {
     els.genStatus.textContent = "Need an API key.";
@@ -864,7 +865,6 @@ async function generateWorkout() {
     els.genRequest.focus();
     return;
   }
-  localStorage.setItem(GEMINI_KEY_KEY, key);
 
   const prompt = els.genHistory.checked
     ? `${req}\n\n${summarizeRecentSessions() || "(no recent history yet)"}`
@@ -907,8 +907,9 @@ async function generateWorkout() {
 
 els.genBtn.addEventListener("click", generateWorkout);
 els.geminiKey.value = localStorage.getItem(GEMINI_KEY_KEY) || "";
-els.geminiKey.addEventListener("change", () => {
-  localStorage.setItem(GEMINI_KEY_KEY, els.geminiKey.value.trim());
+els.geminiKey.addEventListener("input", () => {
+  const v = els.geminiKey.value.trim();
+  if (v) localStorage.setItem(GEMINI_KEY_KEY, v);
 });
 
 // ---------- Init ----------
