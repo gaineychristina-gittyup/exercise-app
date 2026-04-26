@@ -446,6 +446,23 @@ body.modal-open {
   margin: 8px auto 12px;
   display: grid;
   place-items: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+body.mode-reps .timer-wrap {
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 80ms ease, box-shadow 150ms ease;
+}
+
+body.mode-reps .timer-wrap:active:not([aria-disabled="true"]) {
+  transform: scale(0.97);
+}
+
+body.mode-reps .timer-wrap:focus-visible {
+  box-shadow: 0 0 0 4px rgba(240, 165, 116, 0.25);
 }
 
 .ring {

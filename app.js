@@ -310,6 +310,7 @@ const state = {
   setIndex: 0,
   remaining: 0,
   elapsed: 0,
+  repCount: 0,
   paused: false,
   awaitingNext: false,
   intervalId: null,
@@ -435,11 +436,10 @@ function updateActiveUI() {
       els.pauseBtn.textContent = isLast ? "Finish" : "Next exercise";
       els.pauseBtn.disabled = false;
     } else {
-      els.timer.textContent = `${ex.reps}`;
+      els.timer.textContent = `${state.repCount}/${ex.reps}`;
       const setLabel = ex.sets > 1 ? `Set ${state.setIndex + 1} of ${ex.sets}` : "Reps";
-      els.setText.textContent = state.paused
-        ? `${setLabel} · paused`
-        : `${setLabel} · ${formatTime(state.elapsed)}`;
+      const tapHint = state.paused ? "paused" : "tap timer to count";
+      els.setText.textContent = `${setLabel} · ${tapHint} · ${formatTime(state.elapsed)}`;
       els.pauseBtn.textContent = "Done set";
       els.pauseBtn.disabled = state.paused;
     }
@@ -505,6 +505,7 @@ function beginCurrent() {
   state.paused = false;
   state.awaitingNext = false;
   state.elapsed = 0;
+  state.repCount = 0;
   clearInterval(state.intervalId);
   resetRing();
   if (ex.type === "time") state.remaining = ex.duration;
@@ -531,11 +532,24 @@ function completeSet() {
   }
   if (state.setIndex < ex.sets - 1) {
     state.setIndex += 1;
+    state.repCount = 0;
     beep(660, 120);
     updateActiveUI();
   } else {
     state.awaitingNext = true;
     beep(880, 250);
+    updateActiveUI();
+  }
+}
+
+function countRep() {
+  const ex = state.exercises[state.index];
+  if (!ex || ex.type !== "reps" || state.awaitingNext || state.paused) return;
+  state.repCount += 1;
+  if (state.repCount >= ex.reps) {
+    completeSet();
+  } else {
+    beep(520, 40);
     updateActiveUI();
   }
 }
@@ -616,6 +630,14 @@ els.holdBtn?.addEventListener("click", () => {
   state.paused = !state.paused;
   if (!state.paused) requestWakeLock();
   updateActiveUI();
+});
+const timerWrap = document.getElementById("timer-wrap");
+timerWrap?.addEventListener("click", countRep);
+timerWrap?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.key === " ") {
+    e.preventDefault();
+    countRep();
+  }
 });
 els.newBtn.addEventListener("click", () => showScreen("home"));
 
