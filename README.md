@@ -1,4 +1,4 @@
-# Claude Workout Buddy
+# GaineyFit
 
 A guided-workout app. You paste a workout (from Claude or anywhere), tap **Start**, and it runs each exercise hands-free — countdown timer for timed moves, big "Done set" button for rep-based moves.
 

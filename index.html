@@ -3,7 +3,13 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Claude Workout Buddy</title>
+    <title>GaineyFit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -17,7 +23,22 @@
       <div class="tab-panel" data-panel="workout">
       <section class="screen" data-screen="home">
         <header class="app__header">
-          <h1>Claude Workout Buddy</h1>
+          <div class="brand">
+            <svg class="brand__mark" viewBox="0 0 24 24" aria-hidden="true">
+              <defs>
+                <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#7c5cff" />
+                  <stop offset="100%" stop-color="#22d3ee" />
+                </linearGradient>
+              </defs>
+              <rect x="1" y="9" width="3" height="6" rx="1" fill="url(#brandGrad)" />
+              <rect x="20" y="9" width="3" height="6" rx="1" fill="url(#brandGrad)" />
+              <rect x="4" y="10.5" width="3" height="3" rx="0.5" fill="url(#brandGrad)" />
+              <rect x="17" y="10.5" width="3" height="3" rx="0.5" fill="url(#brandGrad)" />
+              <rect x="7" y="11" width="10" height="2" rx="0.5" fill="url(#brandGrad)" />
+            </svg>
+            <h1>GaineyFit</h1>
+          </div>
           <p class="app__subtitle">Paste a workout. Tap start. Move.</p>
         </header>
 
@@ -80,6 +101,12 @@
         <div class="active__description" id="exercise-desc"></div>
         <div class="timer-wrap">
           <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
+            <defs>
+              <linearGradient id="ringGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#7c5cff" />
+                <stop offset="100%" stop-color="#22d3ee" />
+              </linearGradient>
+            </defs>
             <circle class="ring__bg" cx="50" cy="50" r="46" />
             <circle class="ring__fg" id="ring-fg" cx="50" cy="50" r="46" pathLength="100" />
           </svg>
