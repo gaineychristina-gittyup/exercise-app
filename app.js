@@ -24,7 +24,9 @@ const els = {
   startBtn: document.getElementById("start-btn"),
   sampleBtn: document.getElementById("sample-btn"),
   exerciseName: document.getElementById("exercise-name"),
+  exerciseSide: document.getElementById("exercise-side"),
   setText: document.getElementById("set-text"),
+  exerciseEquipment: document.getElementById("exercise-equipment"),
   description: document.getElementById("exercise-desc"),
   timer: document.getElementById("timer"),
   nextUp: document.getElementById("next-up"),
@@ -217,6 +219,28 @@ function extractEquipmentLine(description) {
   if (!description) return "";
   const m = description.match(/^\s*Equipment:\s*(.+?)\s*$/im);
   return m ? m[1].trim() : "";
+}
+
+function isNoGear(value) {
+  return !value || /^(none|nothing|n\/a|bodyweight)\.?$/i.test(value);
+}
+
+function splitSideFromName(name) {
+  const m = String(name).match(/^\s*(.+?)\s*[\(\[]\s*(left|right)\s*[\)\]]\s*$/i);
+  if (m) return { base: m[1].trim(), side: m[2].toLowerCase() };
+  const m2 = String(name).match(/^\s*(.+?)\s*[-–—:,]\s*(left|right)(?:\s*side)?\s*$/i);
+  if (m2) return { base: m2[1].trim(), side: m2[2].toLowerCase() };
+  return { base: String(name), side: "" };
+}
+
+function descriptionWithoutEquipment(description) {
+  if (!description) return "";
+  return description
+    .split(/\r?\n/)
+    .filter((line) => !/^\s*Equipment:\s*/i.test(line))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 function extractTargetLine(description) {
@@ -421,8 +445,30 @@ function remainingEstimate() {
 function updateActiveUI() {
   const ex = state.exercises[state.index];
   if (!ex) return;
-  els.exerciseName.textContent = ex.name;
-  els.description.textContent = ex.description || "";
+  const { base, side } = splitSideFromName(ex.name);
+  els.exerciseName.textContent = base;
+  if (els.exerciseSide) {
+    if (side) {
+      els.exerciseSide.textContent = side === "left" ? "Left side" : "Right side";
+      els.exerciseSide.dataset.side = side;
+      els.exerciseSide.hidden = false;
+    } else {
+      els.exerciseSide.textContent = "";
+      els.exerciseSide.removeAttribute("data-side");
+      els.exerciseSide.hidden = true;
+    }
+  }
+  const supplies = extractEquipmentLine(ex.description);
+  if (els.exerciseEquipment) {
+    if (supplies && !isNoGear(supplies)) {
+      els.exerciseEquipment.textContent = `Grab: ${supplies}`;
+      els.exerciseEquipment.hidden = false;
+    } else {
+      els.exerciseEquipment.textContent = "";
+      els.exerciseEquipment.hidden = true;
+    }
+  }
+  els.description.textContent = descriptionWithoutEquipment(ex.description);
   els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
 
   document.body.classList.toggle("mode-reps", ex.type === "reps");
@@ -458,7 +504,13 @@ function updateActiveUI() {
   els.progressBar.style.width = `${overall}%`;
 
   const next = state.exercises[state.index + 1];
-  els.nextUp.textContent = next ? `Next: ${next.name}` : "Last one";
+  if (next) {
+    const nextGear = extractEquipmentLine(next.description);
+    const gearHint = nextGear && !isNoGear(nextGear) ? ` · grab ${nextGear}` : "";
+    els.nextUp.textContent = `Next: ${next.name}${gearHint}`;
+  } else {
+    els.nextUp.textContent = "Last one";
+  }
 
   const remainingTotal = remainingEstimate();
   const hasReps = state.exercises.slice(state.index).some((e) => e.type === "reps");
@@ -902,7 +954,13 @@ Format rules (strict):
 - The header line MUST wrap the exercise name in **double asterisks**.
 - Header is followed by " - " then either a duration ("30s", "45s", "1 min", "1:30"), or sets x reps ("3x10", "3 sets of 10"), or just reps ("10 reps").
 - Description lines follow the header. Always include Equipment. Include "No weights:" only when equipment is required (a specific bodyweight substitution).
-- Equipment values should be short and concrete: "One dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate multiple items.
+- Equipment values should be short and concrete: "One dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate multiple items. The app surfaces this as a "Grab:" banner during each exercise and aggregates it before the workout, so be specific.
+- Bilateral coverage: any unilateral movement (lunges, split squats, step-ups, single-arm rows, single-leg deadlifts, side planks, curtsy lunges, pistol squats, bird dogs done one side at a time, etc.) MUST appear as TWO consecutive blocks — one per side — using a "(Left)" / "(Right)" suffix in the name so the timer and rep counter cover each side independently. Example:
+    **Reverse Lunge (Left)** - 3x10
+    **Reverse Lunge (Right)** - 3x10
+    **Side Plank (Left)** - 30s
+    **Side Plank (Right)** - 30s
+  Bilateral movements (squats, push-ups, planks, jumping jacks, burpees, etc.) stay as a single block. Do not insert rest between the Left and Right halves of the same movement.
 - Separate exercises with a single blank line.
 - Rest periods: "**Rest** - 15s" with no description below it. Only between hard timed intervals — not between rep-based exercises.
 - Use plain hyphens, Title Case names.

@@ -42,10 +42,26 @@ Format rules (strict):
   follow the header and stay short (one sentence each is ideal).
 - ALWAYS include the Equipment line. Use short, concrete values: "One
   dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate
-  multiple items. The app aggregates these to show what gear is needed
-  before the workout starts.
+  multiple items. The app surfaces this as a "Grab:" banner during each
+  exercise (and previews the next exercise's gear in the "Next:" line),
+  plus aggregates everything before the workout starts — so be specific.
 - Include "No weights:" only when Equipment lists actual gear — give a
   bodyweight substitution the user can do instead.
+- Bilateral coverage: any UNILATERAL movement (lunges, split squats,
+  step-ups, single-arm rows, single-leg deadlifts, side planks, curtsy
+  lunges, pistol squats, etc.) MUST appear as TWO consecutive blocks —
+  one for the left side, one for the right side — using a "(Left)" /
+  "(Right)" suffix on the name so the timer and rep counter cover each
+  side independently. Example:
+
+      **Reverse Lunge (Left)** - 3x10
+      **Reverse Lunge (Right)** - 3x10
+      **Side Plank (Left)** - 30s
+      **Side Plank (Right)** - 30s
+
+  Bilateral movements (squats, push-ups, planks, jumping jacks, burpees,
+  etc.) stay as a single block. Don't insert Rest between the Left and
+  Right halves of the same movement.
 - Separate exercises with a single blank line.
 - Rest periods: "**Rest** - 15s" with NO description lines below it.
   Add rest only between hard timed intervals — don't add rest between
@@ -85,6 +101,18 @@ Feel: Mid-back and biceps.
 Equipment: Two dumbbells.
 No weights: Inverted rows under a sturdy table, body straight.
 
+**Reverse Lunge (Left)** - 3x10
+What to do: Step the left foot back, lower the left knee toward the floor, drive through the right heel to stand.
+Target: Quads, glutes, hamstrings.
+Feel: Front leg quad and glute.
+Equipment: None.
+
+**Reverse Lunge (Right)** - 3x10
+What to do: Step the right foot back, lower the right knee toward the floor, drive through the left heel to stand.
+Target: Quads, glutes, hamstrings.
+Feel: Front leg quad and glute.
+Equipment: None.
+
 **Plank** - 30s
 What to do: Forearms on the floor, body in a straight line from head to heels, brace your core and squeeze your glutes.
 Target: Core, shoulders, glutes.
@@ -113,6 +141,16 @@ Equipment: None.
 
 Lines below a header (until the next blank line + new header) are shown
 as the exercise's description on the active screen.
+
+**Bilateral exercises:** unilateral movements should be emitted as two
+consecutive blocks with a `(Left)` / `(Right)` suffix on the name. The
+app picks up the suffix and shows a "Left side" / "Right side" badge on
+the active screen, while the timer/rep counter runs once per side.
+
+**Equipment:** the `Equipment:` line for each exercise appears as a
+prominent "Grab: …" banner during the exercise, and the next exercise's
+gear is teased in the "Next:" line so you can grab it before the timer
+flips.
 
 **Backwards compatible:** if you don't use any `**` markers, every line
 is parsed as a single exercise just like before — pasting a plain

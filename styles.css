@@ -424,6 +424,42 @@ body.modal-open {
   display: none;
 }
 
+.active__side {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 8px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--accent-soft);
+  border: 1px solid rgba(240, 165, 116, 0.30);
+  color: var(--accent);
+}
+
+.active__side[hidden] {
+  display: none;
+}
+
+.active__equipment {
+  text-align: center;
+  margin: 0 auto 10px;
+  max-width: 540px;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.active__equipment[hidden] {
+  display: none;
+}
+
 .active__description {
   text-align: center;
   color: var(--text);
