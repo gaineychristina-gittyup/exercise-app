@@ -275,10 +275,16 @@ function aggregateEquipment(exercises) {
   const seen = new Map(); // lowercase key -> original
   for (const ex of exercises) {
     const raw = extractEquipmentLine(ex.description);
-    if (!raw) continue;
-    if (/^(none|nothing|n\/a|bodyweight)\.?$/i.test(raw)) continue;
-    for (const part of raw.split(/\s*(?:,|\band\b|&|\+)\s*/i)) {
-      const item = part.replace(/\.$/, "").trim();
+    let items = [];
+    if (raw) {
+      if (/^(none|nothing|n\/a|bodyweight)\.?$/i.test(raw)) continue;
+      items = raw
+        .split(/\s*(?:,|\band\b|&|\+)\s*/i)
+        .map((s) => s.replace(/\.$/, "").trim());
+    } else {
+      items = inferEquipmentFromName(ex.name);
+    }
+    for (const item of items) {
       if (!item) continue;
       const key = item.toLowerCase();
       if (/^(none|nothing|n\/a|bodyweight)$/i.test(key)) continue;
@@ -286,6 +292,52 @@ function aggregateEquipment(exercises) {
     }
   }
   return [...seen.values()];
+}
+
+const EQUIPMENT_INFERENCE = [
+  { regex: /\b(?:dumbbells?|db)\b/i, name: "Dumbbells" },
+  { regex: /\b(?:kettlebells?|kb)\b/i, name: "Kettlebell" },
+  { regex: /\bbarbells?\b/i, name: "Barbell" },
+  { regex: /\bgoblet\b/i, name: "Dumbbell or kettlebell" },
+  { regex: /\b(?:pull[-\s]?ups?|chin[-\s]?ups?|muscle[-\s]?ups?)\b/i, name: "Pull-up bar" },
+  { regex: /\b(?:hanging|toes[-\s]?to[-\s]?bar)\b/i, name: "Pull-up bar" },
+  { regex: /\b(?:resistance[-\s]?bands?|mini[-\s]?bands?|loop[-\s]?bands?|bands?)\b/i, name: "Resistance band" },
+  { regex: /\bbench(?:[-\s]?press)?\b/i, name: "Bench" },
+  { regex: /\b(?:incline|decline)[-\s]?(?:press|fly|flye)\b/i, name: "Bench" },
+  { regex: /\b(?:jump[-\s]?ropes?|skipping)\b/i, name: "Jump rope" },
+  { regex: /\b(?:medicine[-\s]?ball|med[-\s]?ball|wall[-\s]?ball|slam[-\s]?ball)s?\b/i, name: "Medicine ball" },
+  { regex: /\b(?:swiss[-\s]?ball|stability[-\s]?ball|exercise[-\s]?ball|physio[-\s]?ball)s?\b/i, name: "Stability ball" },
+  { regex: /\b(?:trx|suspension)\b/i, name: "Suspension trainer" },
+  { regex: /\b(?:battle[-\s]?ropes?)\b/i, name: "Battle ropes" },
+  { regex: /\b(?:box[-\s]?jumps?|plyo[-\s]?box|step[-\s]?ups?)\b/i, name: "Box or step" },
+  { regex: /\b(?:rowing|rower|erg)\b/i, name: "Rowing machine" },
+  { regex: /\btreadmill\b/i, name: "Treadmill" },
+  { regex: /\b(?:assault[-\s]?bike|exercise[-\s]?bike|spin[-\s]?bike|stationary[-\s]?bike)\b/i, name: "Bike" },
+  { regex: /\bsled\b/i, name: "Sled" },
+  { regex: /\bab[-\s]?wheel\b/i, name: "Ab wheel" },
+  { regex: /\b(?:dip[-\s]?bars?|parallel[-\s]?bars?|parallettes?)\b/i, name: "Dip bars" },
+  { regex: /\b(?:gymnastic[-\s]?rings?|ring[-\s]?(?:rows?|dips?|pull[-\s]?ups?))\b/i, name: "Gymnastic rings" },
+  { regex: /\blandmine\b/i, name: "Landmine" },
+  { regex: /\b(?:ez[-\s]?bar|ez[-\s]?curl)\b/i, name: "EZ bar" },
+  { regex: /\b(?:trap[-\s]?bar|hex[-\s]?bar)\b/i, name: "Trap bar" },
+  { regex: /\b(?:weighted[-\s]?vest)\b/i, name: "Weighted vest" },
+  { regex: /\b(?:cable(?:[-\s]?(?:row|pull|press|fly|flye|crossover|crunch))?)\b/i, name: "Cable machine" },
+  { regex: /\b(?:leg[-\s]?press|leg[-\s]?curl|leg[-\s]?extension|lat[-\s]?pulldown|pulldown|pec[-\s]?deck|smith[-\s]?machine|hack[-\s]?squat)\b/i, name: "Machine" },
+  { regex: /\bfoam[-\s]?roll(?:er|ing)?\b/i, name: "Foam roller" },
+  { regex: /\byoga[-\s]?(?:mat|block|strap)\b/i, name: "Yoga mat" },
+];
+
+function inferEquipmentFromName(name) {
+  if (!name) return [];
+  const found = [];
+  const seen = new Set();
+  for (const { regex, name: itemName } of EQUIPMENT_INFERENCE) {
+    if (regex.test(name) && !seen.has(itemName)) {
+      seen.add(itemName);
+      found.push(itemName);
+    }
+  }
+  return found;
 }
 
 function totalSets(exercises) {
