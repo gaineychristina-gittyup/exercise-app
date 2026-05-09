@@ -439,6 +439,29 @@ body.modal-open {
   display: none;
 }
 
+.active__images {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 540px;
+  margin: 0 auto 12px;
+  padding: 0 6px;
+}
+
+.active__images:empty {
+  display: none;
+}
+
+.active__images img {
+  max-height: 140px;
+  max-width: calc(50% - 4px);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  object-fit: contain;
+}
+
 .timer-wrap {
   position: relative;
   width: clamp(220px, 60vw, 300px);

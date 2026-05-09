@@ -26,6 +26,7 @@ const els = {
   exerciseName: document.getElementById("exercise-name"),
   setText: document.getElementById("set-text"),
   description: document.getElementById("exercise-desc"),
+  images: document.getElementById("exercise-images"),
   timer: document.getElementById("timer"),
   nextUp: document.getElementById("next-up"),
   eta: document.getElementById("eta"),
@@ -110,18 +111,27 @@ function normalizeExercise(raw) {
   if (typeof raw === "string") return parseLine(raw);
   const name = String(raw.name ?? raw.exercise ?? "").trim();
   if (!name) return null;
-  const description = raw.description ? String(raw.description).trim() : "";
+  const rawDesc = raw.description ? String(raw.description).trim() : "";
+  const { description, images: descImages } = extractImagesFromDescription(rawDesc);
+  const explicitImages = []
+    .concat(raw.images ?? [])
+    .concat(raw.image ?? [])
+    .map((u) => String(u).trim())
+    .filter((u) => /^https?:\/\/\S+$/i.test(u));
+  const images = [...explicitImages, ...descImages];
+  const base = { name, description };
+  if (images.length) base.images = images;
   if (raw.sets && raw.reps) {
-    return { name, type: "reps", sets: Number(raw.sets), reps: Number(raw.reps), description };
+    return { ...base, type: "reps", sets: Number(raw.sets), reps: Number(raw.reps) };
   }
   if (raw.reps && !raw.sets) {
-    return { name, type: "reps", sets: 1, reps: Number(raw.reps), description };
+    return { ...base, type: "reps", sets: 1, reps: Number(raw.reps) };
   }
   const duration =
     Number(raw.duration ?? raw.seconds ?? raw.time) ||
     parseDuration(String(raw.duration ?? "")) ||
     30;
-  return { name, type: "time", duration, description };
+  return { ...base, type: "time", duration };
 }
 
 function parseLine(line) {
@@ -137,6 +147,34 @@ function parseLine(line) {
   const duration = parseDuration(cleaned) ?? 30;
   const name = stripMetaFromName(cleaned) || cleaned;
   return { name, type: "time", duration };
+}
+
+function extractImagesFromDescription(description) {
+  if (!description) return { description: "", images: [] };
+  const lines = description.split(/\r?\n/);
+  const images = [];
+  const remaining = [];
+  for (const line of lines) {
+    const m = line.match(/^\s*(?:Image|Picture|Photo|Muscle Image|Muscles? Diagram)s?\s*:\s*(.+?)\s*$/i);
+    if (m) {
+      for (const part of m[1].split(/\s*,\s*/)) {
+        const url = part.trim().replace(/^[<(]|[>)]$/g, "");
+        if (/^https?:\/\/\S+$/i.test(url)) images.push(url);
+      }
+      continue;
+    }
+    remaining.push(line);
+  }
+  return {
+    description: remaining.join("\n").replace(/\n{3,}/g, "\n\n").trim(),
+    images,
+  };
+}
+
+function applyDescription(exercise, rawDescription) {
+  const { description, images } = extractImagesFromDescription(rawDescription);
+  exercise.description = description;
+  if (images.length) exercise.images = images;
 }
 
 function parseWorkout(text) {
@@ -171,7 +209,7 @@ function parseWorkout(text) {
     if (/^[#=_-]{2,}$/.test(t)) continue;
     if (/\*\*[^*]+\*\*/.test(t)) {
       if (exercises.length && descBuf.length) {
-        exercises[exercises.length - 1].description = descBuf.join("\n").trim();
+        applyDescription(exercises[exercises.length - 1], descBuf.join("\n").trim());
       }
       descBuf = [];
       const ex = parseLine(t);
@@ -181,7 +219,7 @@ function parseWorkout(text) {
     }
   }
   if (exercises.length && descBuf.length) {
-    exercises[exercises.length - 1].description = descBuf.join("\n").trim();
+    applyDescription(exercises[exercises.length - 1], descBuf.join("\n").trim());
   }
   return exercises;
 }
@@ -418,11 +456,28 @@ function remainingEstimate() {
   return total + state.remaining;
 }
 
+function renderExerciseImages(urls) {
+  if (!els.images) return;
+  els.images.replaceChildren();
+  if (!urls || !urls.length) return;
+  for (const url of urls) {
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = "";
+    img.loading = "lazy";
+    img.decoding = "async";
+    img.referrerPolicy = "no-referrer";
+    img.addEventListener("error", () => img.remove(), { once: true });
+    els.images.append(img);
+  }
+}
+
 function updateActiveUI() {
   const ex = state.exercises[state.index];
   if (!ex) return;
   els.exerciseName.textContent = ex.name;
   els.description.textContent = ex.description || "";
+  renderExerciseImages(ex.images);
   els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
 
   document.body.classList.toggle("mode-reps", ex.type === "reps");
@@ -897,12 +952,14 @@ Each exercise is a block of lines:
   Feel: <where you should feel it>.
   Equipment: <gear needed, or "None">.
   No weights: <substitution if equipment is needed, otherwise omit this line>.
+  Image: <optional https URL of the movement or the targeted muscle anatomy>.
 
 Format rules (strict):
 - The header line MUST wrap the exercise name in **double asterisks**.
 - Header is followed by " - " then either a duration ("30s", "45s", "1 min", "1:30"), or sets x reps ("3x10", "3 sets of 10"), or just reps ("10 reps").
 - Description lines follow the header. Always include Equipment. Include "No weights:" only when equipment is required (a specific bodyweight substitution).
 - Equipment values should be short and concrete: "One dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate multiple items.
+- Image lines are optional. Each is "Image: https://…" on its own line — repeat the line for multiple pictures (e.g. one for the movement, one for the muscle group). Only use real, stable URLs you are confident exist (Wikipedia/Wikimedia Commons anatomy diagrams are good defaults). Skip the line if you aren't sure.
 - Separate exercises with a single blank line.
 - Rest periods: "**Rest** - 15s" with no description below it. Only between hard timed intervals — not between rep-based exercises.
 - Use plain hyphens, Title Case names.

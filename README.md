@@ -12,13 +12,14 @@ Live at https://gaineychristina-gittyup.github.io/exercise-app/.
 - Rep-based: `Push-ups - 3x10` · `Squats - 3 sets of 10` · `Pull-ups - 6 reps`
 - Rest: `Rest - 15s` (always timed)
 
-**With descriptions** (shown on the active screen during the workout) — wrap each name in `**…**` and put the description on the lines below until the next bold header:
+**With descriptions** (shown on the active screen during the workout) — wrap each name in `**…**` and put the description on the lines below until the next bold header. `Image:` lines are optional; each is one https URL and renders as a picture on the active screen (repeat the line for multiple pictures, e.g. one of the movement and one of the targeted muscle anatomy):
 
 ```
 **Squats** - 3x10
 What to do: Stand feet shoulder-width, lower hips back and down, drive through your heels to stand.
 Target: Quads, glutes, hamstrings.
 Feel: Thighs and glutes.
+Image: https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Quadriceps_Femoris.PNG/480px-Quadriceps_Femoris.PNG
 
 **Plank** - 30s
 What to do: Forearms on the floor, body straight from head to heels, brace your core.
@@ -26,11 +27,12 @@ Target: Core, shoulders.
 Feel: Abs and lower back.
 ```
 
-JSON also works: `[{"name":"Squats","sets":3,"reps":10,"description":"…"}, {"name":"Plank","duration":30}]`.
+JSON also works: `[{"name":"Squats","sets":3,"reps":10,"description":"…","images":["https://…"]}, {"name":"Plank","duration":30}]`.
 
-## Get a workout from Claude
+## Get a workout from an AI chat
 
-See [`claude-chat-instructions.md`](./claude-chat-instructions.md) for a system prompt you can paste into a Claude.ai project so Claude outputs workouts in this exact format.
+- Claude — see [`claude-chat-instructions.md`](./claude-chat-instructions.md) for a system prompt to paste into a Claude.ai project.
+- ChatGPT — see [`chatgpt-instructions.md`](./chatgpt-instructions.md) for a prompt to paste into a ChatGPT custom GPT, project, or one-off chat. Same format; ChatGPT can also transcribe a workout from an attached photo.
 
 ## Generate with Gemini (free, in-app)
 
@@ -66,4 +68,5 @@ GitHub Actions auto-deploys on push to `main` via `.github/workflows/pages.yml`.
 
 - `index.html` / `styles.css` / `app.js` — the app
 - `claude-chat-instructions.md` — copy-paste system prompt for Claude.ai
+- `chatgpt-instructions.md` — copy-paste system prompt for ChatGPT
 - `.github/workflows/pages.yml` — Pages deploy workflow

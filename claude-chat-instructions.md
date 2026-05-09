@@ -31,6 +31,7 @@ Each exercise is a block of lines:
   Feel: <where you should feel it>.
   Equipment: <gear needed, or "None">.
   No weights: <bodyweight substitution> (only include when Equipment is required).
+  Image: <optional https URL of the movement or the targeted muscle anatomy>.
 
 Format rules (strict):
 - The header line MUST wrap the exercise name in **double asterisks** so
@@ -38,14 +39,20 @@ Format rules (strict):
     - a duration: "30s", "45s", "1 min", "1:30"
     - or sets x reps: "3x10", "3 sets of 10"
     - or just reps: "10 reps"
-- The description lines (What to do / Target / Feel / Equipment / No weights)
-  follow the header and stay short (one sentence each is ideal).
+- The description lines (What to do / Target / Feel / Equipment / No weights /
+  Image) follow the header and stay short (one sentence each is ideal).
 - ALWAYS include the Equipment line. Use short, concrete values: "One
   dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate
   multiple items. The app aggregates these to show what gear is needed
   before the workout starts.
 - Include "No weights:" only when Equipment lists actual gear — give a
   bodyweight substitution the user can do instead.
+- Image lines are optional. Each "Image:" line is one full https URL — the
+  app renders each on the active workout screen. Add up to two per exercise
+  (e.g. one of the movement, one of the muscle anatomy). Only use real,
+  stable URLs you are confident exist (Wikipedia/Wikimedia Commons anatomy
+  diagrams are good defaults). Omit the line if uncertain — broken URLs are
+  worse than missing ones.
 - Separate exercises with a single blank line.
 - Rest periods: "**Rest** - 15s" with NO description lines below it.
   Add rest only between hard timed intervals — don't add rest between
@@ -77,6 +84,7 @@ What to do: From plank position, lower chest until it nearly touches the floor, 
 Target: Chest, triceps, shoulders, core.
 Feel: Chest, triceps, and shoulders.
 Equipment: None.
+Image: https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Pectoralis_major.png/480px-Pectoralis_major.png
 
 **Bent-over Rows** - 3x10
 What to do: Hinge at hips with a flat back, pull dumbbells to ribs, squeeze shoulder blades, lower with control.
@@ -110,9 +118,12 @@ Equipment: None.
 | `**Squats** - 3 sets of 10` | 3 sets of 10 reps     |
 | `**Pull-ups** - 6 reps`| 1 set of 6 reps            |
 | `**Rest** - 15s`       | Timed rest                 |
+| `Image: https://…`     | Picture rendered on active screen |
 
 Lines below a header (until the next blank line + new header) are shown
-as the exercise's description on the active screen.
+as the exercise's description on the active screen. `Image:` lines are
+pulled out and rendered as pictures instead of text — repeat the line to
+add more than one picture per exercise.
 
 **Backwards compatible:** if you don't use any `**` markers, every line
 is parsed as a single exercise just like before — pasting a plain
