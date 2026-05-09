@@ -9,12 +9,12 @@
   --border-strong: #3a4f78;
   --text: #e8edf7;
   --muted: #8a96b3;
-  --primary: #f0a574;
-  --primary-hover: #e89255;
-  --accent: #f7c994;
-  --accent-soft: rgba(240, 165, 116, 0.16);
+  --primary: #f472b6;
+  --primary-hover: #ec4899;
+  --accent: #f9a8d4;
+  --accent-soft: rgba(244, 114, 182, 0.16);
   --danger: #ff7a8a;
-  --gradient: linear-gradient(135deg, #f0a574, #e89255);
+  --gradient: linear-gradient(135deg, #f472b6, #ec4899);
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03), 0 14px 30px -18px rgba(0, 0, 0, 0.7);
   --radius: 16px;
 }
@@ -35,7 +35,7 @@ body {
   min-height: 100dvh;
   background-color: var(--bg);
   background-image:
-    radial-gradient(900px 600px at 85% -10%, rgba(240, 165, 116, 0.08), transparent 65%),
+    radial-gradient(900px 600px at 85% -10%, rgba(244, 114, 182, 0.08), transparent 65%),
     radial-gradient(700px 500px at -10% 110%, rgba(76, 130, 220, 0.10), transparent 65%);
   background-attachment: fixed;
   transition: background-color 300ms ease;
@@ -94,7 +94,7 @@ body.is-rest {
 
 .icon-btn.is-paused {
   color: var(--primary);
-  border-color: rgba(240, 165, 116, 0.4);
+  border-color: rgba(244, 114, 182, 0.4);
 }
 
 .active__top-actions {
@@ -255,7 +255,7 @@ body.modal-open {
 .textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.18);
+  box-shadow: 0 0 0 3px rgba(244, 114, 182, 0.22);
 }
 
 .row {
@@ -287,8 +287,8 @@ body.modal-open {
 
 .button--primary {
   background: var(--primary);
-  color: #1a1108;
-  box-shadow: 0 6px 18px -10px rgba(240, 165, 116, 0.55);
+  color: #2a0a1c;
+  box-shadow: 0 6px 18px -10px rgba(244, 114, 182, 0.55);
 }
 
 .button--ghost {
@@ -348,7 +348,7 @@ body.modal-open {
   margin: 12px 0 0;
   padding: 10px 14px;
   background: var(--accent-soft);
-  border: 1px solid rgba(240, 165, 116, 0.30);
+  border: 1px solid rgba(244, 114, 182, 0.30);
   border-radius: 12px;
   color: var(--accent);
   font-size: 14px;
@@ -400,7 +400,7 @@ body.modal-open {
   background: var(--primary);
   width: 0%;
   transition: width 0.95s linear;
-  box-shadow: 0 0 12px rgba(240, 165, 116, 0.35);
+  box-shadow: 0 0 12px rgba(244, 114, 182, 0.35);
 }
 
 .active__exercise {
@@ -441,9 +441,9 @@ body.modal-open {
 
 .timer-wrap {
   position: relative;
-  width: clamp(220px, 60vw, 300px);
+  width: clamp(300px, 82vw, 440px);
   aspect-ratio: 1;
-  margin: 8px auto 12px;
+  margin: 12px auto 16px;
   display: grid;
   place-items: center;
   user-select: none;
@@ -462,7 +462,7 @@ body.mode-reps .timer-wrap:active:not([aria-disabled="true"]) {
 }
 
 body.mode-reps .timer-wrap:focus-visible {
-  box-shadow: 0 0 0 4px rgba(240, 165, 116, 0.25);
+  box-shadow: 0 0 0 4px rgba(244, 114, 182, 0.25);
 }
 
 .ring {
@@ -489,7 +489,7 @@ body.mode-reps .timer-wrap:focus-visible {
   stroke-dasharray: 100;
   stroke-dashoffset: 0;
   transition: stroke-dashoffset 0.95s linear;
-  filter: drop-shadow(0 0 10px rgba(240, 165, 116, 0.40));
+  filter: drop-shadow(0 0 10px rgba(244, 114, 182, 0.40));
 }
 
 body.mode-reps .ring {
@@ -499,11 +499,11 @@ body.mode-reps .ring {
 .active__timer {
   position: relative;
   z-index: 1;
-  font-size: clamp(64px, 18vw, 120px);
+  font-size: clamp(96px, 26vw, 180px);
   font-weight: 800;
   text-align: center;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -2px;
+  letter-spacing: -3px;
   line-height: 1;
   margin: 0;
   color: var(--text);
@@ -515,7 +515,7 @@ body.mode-reps .active__timer {
 
 body.is-rest .active__timer {
   color: var(--accent);
-  text-shadow: 0 0 24px rgba(240, 165, 116, 0.30);
+  text-shadow: 0 0 24px rgba(244, 114, 182, 0.35);
 }
 
 body.mode-time .active__timer {
@@ -531,10 +531,12 @@ body.mode-time .active__timer {
 
 .active__eta {
   text-align: center;
-  color: var(--muted);
-  font-size: 15px;
+  color: var(--accent);
+  font-size: clamp(20px, 4.5vw, 26px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
   margin-bottom: 32px;
-  min-height: 1.2em;
+  min-height: 1.3em;
 }
 
 .active__actions {
@@ -652,7 +654,7 @@ body.mode-time .active__timer {
 .cal__day--done {
   background: var(--accent-soft);
   color: var(--accent);
-  border: 1px solid rgba(240, 165, 116, 0.30);
+  border: 1px solid rgba(244, 114, 182, 0.30);
 }
 
 .cal__num {
