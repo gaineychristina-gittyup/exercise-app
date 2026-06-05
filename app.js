@@ -3,12 +3,6 @@ const HISTORY_KEY = "workout-buddy.history.v1";
 const SESSIONS_KEY = "workout-buddy.sessions.v1";
 const PLAN_KEY = "workout-buddy.weekly-plan.v1";
 const GEMINI_KEY_KEY = "workout-buddy.gemini-key.v1";
-const PHOTOS_KEY = "workout-buddy.exercise-photos.v1";
-
-// Image formats accepted for exercise reference photos.
-const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
-const MAX_IMAGE_DIM = 700; // px; uploads are downscaled before storage
-const ACCEPTED_IMAGE_LABEL = "PNG, JPEG, WebP, or GIF";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -58,8 +52,6 @@ const els = {
   genHistory: document.getElementById("gen-history"),
   genBtn: document.getElementById("gen-btn"),
   genStatus: document.getElementById("gen-status"),
-  photoStatus: document.getElementById("photo-status"),
-  exercisePhoto: document.getElementById("exercise-photo"),
 };
 
 const REP_SET_ESTIMATE = 45; // seconds per set, used only for ETA estimation
@@ -356,109 +348,14 @@ function exerciseLabel(ex) {
   return formatTime(ex.duration);
 }
 
-// ---------- Exercise reference photos ----------
-
-function loadPhotos() {
-  try {
-    const raw = localStorage.getItem(PHOTOS_KEY);
-    const parsed = raw ? JSON.parse(raw) : {};
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function savePhotos(photos) {
-  try {
-    localStorage.setItem(PHOTOS_KEY, JSON.stringify(photos));
-    return true;
-  } catch {
-    return false; // typically a storage-quota error
-  }
-}
-
-// Photos are keyed by exercise name so they follow an exercise across edits.
-function photoKey(name) {
-  return String(name || "").trim().toLowerCase();
-}
-
-function getPhoto(name) {
-  const key = photoKey(name);
-  return key ? loadPhotos()[key] || "" : "";
-}
-
-function setPhoto(name, dataUrl) {
-  const key = photoKey(name);
-  if (!key) return false;
-  const photos = loadPhotos();
-  photos[key] = dataUrl;
-  return savePhotos(photos);
-}
-
-function removePhoto(name) {
-  const key = photoKey(name);
-  if (!key) return;
-  const photos = loadPhotos();
-  if (key in photos) {
-    delete photos[key];
-    savePhotos(photos);
-  }
-}
-
-// Read an uploaded image, reject unsupported types, and downscale it onto a
-// canvas so what we persist in localStorage stays small.
-function fileToDownscaledDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    if (!file || !ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-      reject(new Error(`Unsupported image. Use ${ACCEPTED_IMAGE_LABEL}.`));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Could not read that file."));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("Could not decode that image."));
-      img.onload = () => {
-        const scale = Math.min(1, MAX_IMAGE_DIM / Math.max(img.width, img.height));
-        const w = Math.max(1, Math.round(img.width * scale));
-        const h = Math.max(1, Math.round(img.height * scale));
-        const canvas = document.createElement("canvas");
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("Could not process that image."));
-        // Flatten onto white so transparent PNGs don't go black as JPEG.
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
-        try {
-          resolve(canvas.toDataURL("image/jpeg", 0.82));
-        } catch {
-          reject(new Error("Could not process that image."));
-        }
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function setPhotoStatus(message) {
-  if (els.photoStatus) els.photoStatus.textContent = message || "";
-}
-
 function renderPreview(exercises) {
   els.preview.innerHTML = "";
-  setPhotoStatus("");
   if (!exercises.length) return;
   for (const ex of exercises) {
     const li = document.createElement("li");
     li.className = "preview__item";
-
-    // Thumbnail from an image link in the description (separate feature).
     const imgUrl = firstImageUrl(ex.description || "");
     if (imgUrl) li.append(makeImg(imgUrl, ex.name, "preview__thumb"));
-
     const name = document.createElement("span");
     name.className = "preview__name";
     name.textContent = ex.name;
@@ -466,70 +363,7 @@ function renderPreview(exercises) {
     meta.className = "preview__meta";
     meta.textContent = exerciseLabel(ex);
     li.append(name, meta);
-
-    // Uploaded reference-photo controls.
-    const actions = document.createElement("div");
-    actions.className = "preview__photo";
-
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ACCEPTED_IMAGE_TYPES.join(",");
-    input.className = "preview__file";
-    input.hidden = true;
-
-    const toggleBtn = document.createElement("button");
-    toggleBtn.type = "button";
-    toggleBtn.className = "link-btn preview__photo-btn";
-
-    const render = () => {
-      actions.querySelector(".preview__upload-thumb")?.remove();
-      const photo = getPhoto(ex.name);
-      if (photo) {
-        const img = document.createElement("img");
-        img.className = "preview__upload-thumb";
-        img.src = photo;
-        img.alt = `${ex.name} reference photo`;
-        img.title = "Replace photo";
-        img.addEventListener("click", () => input.click());
-        actions.prepend(img);
-        toggleBtn.textContent = "Remove";
-      } else {
-        toggleBtn.textContent = "Add photo";
-      }
-    };
-
-    toggleBtn.addEventListener("click", () => {
-      if (getPhoto(ex.name)) {
-        removePhoto(ex.name);
-        setPhotoStatus(`Removed photo for ${ex.name}.`);
-        render();
-      } else {
-        input.click();
-      }
-    });
-
-    input.addEventListener("change", async () => {
-      const file = input.files && input.files[0];
-      input.value = ""; // allow re-selecting the same file later
-      if (!file) return;
-      setPhotoStatus("Processing photo…");
-      try {
-        const dataUrl = await fileToDownscaledDataUrl(file);
-        if (!setPhoto(ex.name, dataUrl)) {
-          setPhotoStatus("Couldn't save photo — device storage is full.");
-          return;
-        }
-        setPhotoStatus(`Added photo for ${ex.name}.`);
-        render();
-      } catch (e) {
-        setPhotoStatus(String(e.message || e));
-      }
-    });
-
-    actions.append(toggleBtn);
-    li.append(actions, input);
     els.preview.append(li);
-    render();
   }
 }
 
@@ -677,19 +511,6 @@ function updateActiveUI() {
   els.exerciseName.textContent = ex.name;
   renderDescription(els.description, ex.description || "");
   els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
-
-  if (els.exercisePhoto) {
-    const photo = getPhoto(ex.name);
-    if (photo) {
-      els.exercisePhoto.src = photo;
-      els.exercisePhoto.alt = `${ex.name} reference photo`;
-      els.exercisePhoto.hidden = false;
-    } else {
-      els.exercisePhoto.removeAttribute("src");
-      els.exercisePhoto.alt = "";
-      els.exercisePhoto.hidden = true;
-    }
-  }
 
   document.body.classList.toggle("mode-reps", ex.type === "reps");
   document.body.classList.toggle("mode-time", ex.type !== "reps");
