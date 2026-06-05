@@ -28,6 +28,10 @@ Feel: Abs and lower back.
 
 JSON also works: `[{"name":"Squats","sets":3,"reps":10,"description":"…"}, {"name":"Plank","duration":30}]`.
 
+## Reference photos
+
+Each exercise in the preview list (under the workout textarea) has an **Add photo** button. Accepted formats are **PNG, JPEG, WebP, and GIF**. Uploads are downscaled (max 700px) and stored on your device in `localStorage`, keyed by exercise name, so the photo reappears whenever that exercise comes up. The photo is shown on the active screen while you run the exercise. Tap the thumbnail to replace it, or **Remove** to delete it.
+
 ## Get a workout from Claude
 
 See [`claude-chat-instructions.md`](./claude-chat-instructions.md) for a system prompt you can paste into a Claude.ai project so Claude outputs workouts in this exact format.
