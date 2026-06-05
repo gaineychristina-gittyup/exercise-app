@@ -66,6 +66,7 @@
           <p class="hint">
             One exercise per line. Use a duration like <code>30s</code> / <code>1 min</code> for timed,
             or <code>3x10</code> / <code>3 sets of 10</code> for rep-based.
+            Add a reference photo (PNG, JPEG, WebP, or GIF) to any exercise below.
           </p>
           <textarea
             id="workout-input"
@@ -83,6 +84,7 @@
           <p id="equipment" class="equipment" aria-live="polite"></p>
           <p id="summary" class="summary" aria-live="polite"></p>
           <ul id="preview-list" class="preview" aria-live="polite"></ul>
+          <p id="photo-status" class="hint photo-status" aria-live="polite"></p>
         </div>
       </section>
 
@@ -105,6 +107,7 @@
         <div class="active__exercise" id="exercise-name">—</div>
         <div class="active__subtext" id="set-text"></div>
         <div class="active__description" id="exercise-desc"></div>
+        <img id="exercise-photo" class="active__photo" alt="" hidden />
         <div class="timer-wrap" id="timer-wrap" role="button" tabindex="0" aria-label="Tap to count a rep">
           <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
             <circle class="ring__bg" cx="50" cy="50" r="46" />

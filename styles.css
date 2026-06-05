@@ -416,6 +416,53 @@ body.modal-open {
   font-variant-numeric: tabular-nums;
 }
 
+.preview__photo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+
+.preview__upload-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-strong);
+  cursor: pointer;
+  display: block;
+}
+
+.preview__photo-btn {
+  padding: 4px 8px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.photo-status {
+  margin: 10px 0 0;
+}
+
+.photo-status:empty {
+  display: none;
+}
+
+.active__photo {
+  display: block;
+  max-width: 540px;
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  margin: 0 auto 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.active__photo[hidden] {
+  display: none;
+}
+
 .active__top {
   display: flex;
   align-items: center;
