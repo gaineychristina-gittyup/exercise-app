@@ -91,6 +91,67 @@ function parseSetsReps(text) {
   return null;
 }
 
+// Matches a markdown image ![alt](url) or a bare image URL ending in a known
+// image extension (optionally followed by a query string). Global, so reset
+// lastIndex before reuse.
+const IMG_TOKEN_RE =
+  /!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s)]+?\.(?:png|jpe?g|gif|webp|svg|avif|bmp)(?:\?[^\s)]*)?)/gi;
+
+function isImageOnlyLine(text) {
+  const t = (text || "").trim();
+  if (!t) return false;
+  return (
+    /^!\[[^\]]*\]\(https?:\/\/[^\s)]+\)$/i.test(t) ||
+    /^https?:\/\/[^\s)]+?\.(?:png|jpe?g|gif|webp|svg|avif|bmp)(?:\?[^\s)]*)?$/i.test(t)
+  );
+}
+
+function firstImageUrl(text) {
+  if (!text) return "";
+  IMG_TOKEN_RE.lastIndex = 0;
+  const m = IMG_TOKEN_RE.exec(text);
+  return m ? m[2] || m[3] : "";
+}
+
+function makeImg(url, alt, className) {
+  const img = document.createElement("img");
+  img.className = className;
+  img.src = url;
+  img.alt = alt || "Exercise image";
+  img.loading = "lazy";
+  img.decoding = "async";
+  img.referrerPolicy = "no-referrer";
+  // Drop the element if the link is dead so we never show a broken-image icon.
+  img.addEventListener("error", () => img.remove());
+  return img;
+}
+
+// Renders text into `el`, turning any image links into <img> elements while
+// keeping the surrounding text intact.
+function renderDescription(el, text) {
+  el.classList.remove("has-img");
+  if (!text) {
+    el.textContent = "";
+    return;
+  }
+  IMG_TOKEN_RE.lastIndex = 0;
+  const frag = document.createDocumentFragment();
+  let last = 0;
+  let found = false;
+  let m;
+  while ((m = IMG_TOKEN_RE.exec(text)) !== null) {
+    const before = text.slice(last, m.index);
+    if (before.trim()) frag.append(document.createTextNode(before));
+    frag.append(makeImg(m[2] || m[3], m[1] || "", "exercise-img"));
+    found = true;
+    last = IMG_TOKEN_RE.lastIndex;
+  }
+  const rest = text.slice(last);
+  if (rest.trim()) frag.append(document.createTextNode(rest));
+  el.replaceChildren(frag);
+  if (found) el.classList.add("has-img");
+}
+
 function stripMetaFromName(text) {
   return text
     .replace(/\*\*/g, "")
@@ -152,11 +213,29 @@ function parseWorkout(text) {
   const hasBoldHeader = lines.some((l) => /\*\*[^*]+\*\*/.test(l));
 
   if (!hasBoldHeader) {
-    return lines
-      .map((l) => l.trim())
-      .filter((l) => l && !/^[#=_-]{2,}$/.test(l))
-      .map(parseLine)
-      .filter(Boolean);
+    const exercises = [];
+    let pendingImg = [];
+    for (const raw of lines) {
+      const l = raw.trim();
+      if (!l || /^[#=_-]{2,}$/.test(l)) continue;
+      if (isImageOnlyLine(l)) {
+        if (exercises.length) {
+          const prev = exercises[exercises.length - 1];
+          prev.description = prev.description ? `${prev.description}\n${l}` : l;
+        } else {
+          pendingImg.push(l);
+        }
+        continue;
+      }
+      const ex = parseLine(l);
+      if (!ex) continue;
+      if (pendingImg.length) {
+        ex.description = [pendingImg.join("\n"), ex.description].filter(Boolean).join("\n");
+        pendingImg = [];
+      }
+      exercises.push(ex);
+    }
+    return exercises;
   }
 
   const exercises = [];
@@ -275,7 +354,15 @@ function renderPreview(exercises) {
   for (const ex of exercises) {
     const li = document.createElement("li");
     li.className = "preview__item";
-    li.textContent = `${ex.name} · ${exerciseLabel(ex)}`;
+    const imgUrl = firstImageUrl(ex.description || "");
+    if (imgUrl) li.append(makeImg(imgUrl, ex.name, "preview__thumb"));
+    const name = document.createElement("span");
+    name.className = "preview__name";
+    name.textContent = ex.name;
+    const meta = document.createElement("span");
+    meta.className = "preview__meta";
+    meta.textContent = exerciseLabel(ex);
+    li.append(name, meta);
     els.preview.append(li);
   }
 }
@@ -422,7 +509,7 @@ function updateActiveUI() {
   const ex = state.exercises[state.index];
   if (!ex) return;
   els.exerciseName.textContent = ex.name;
-  els.description.textContent = ex.description || "";
+  renderDescription(els.description, ex.description || "");
   els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
 
   document.body.classList.toggle("mode-reps", ex.type === "reps");
