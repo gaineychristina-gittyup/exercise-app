@@ -4,9 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>GaineyFit</title>
-    <meta name="theme-color" content="#f5f7fb" />
+    <meta name="theme-color" content="#131a2b" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="GaineyFit" />
     <link rel="icon" type="image/svg+xml" href="./icon.svg" />
     <link rel="apple-touch-icon" href="./icon.svg" />
@@ -102,9 +102,9 @@
             <button id="end-btn" type="button" class="link-btn">End</button>
           </div>
         </div>
+        <div class="active__media" id="exercise-media" hidden></div>
         <div class="active__exercise" id="exercise-name">—</div>
         <div class="active__subtext" id="set-text"></div>
-        <div class="active__description" id="exercise-desc"></div>
         <div class="timer-wrap" id="timer-wrap" role="button" tabindex="0" aria-label="Tap to count a rep">
           <svg class="ring" viewBox="0 0 100 100" aria-hidden="true">
             <circle class="ring__bg" cx="50" cy="50" r="46" />
@@ -112,6 +112,7 @@
           </svg>
           <div class="active__timer" id="timer">0:00</div>
         </div>
+        <div class="active__description" id="exercise-desc"></div>
         <div class="active__next" id="next-up"></div>
         <div class="active__eta" id="eta"></div>
         <div class="active__actions">
