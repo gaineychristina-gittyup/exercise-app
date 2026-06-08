@@ -488,6 +488,59 @@ body.modal-open {
   display: none;
 }
 
+.muscle-map {
+  margin: 0 auto 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.muscle-map[hidden] {
+  display: none;
+}
+
+.muscle-map__svg {
+  width: 220px;
+  max-width: 70vw;
+}
+
+.mm-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.mm-body {
+  fill: var(--surface);
+  stroke: var(--border-strong);
+  stroke-width: 0.8;
+}
+
+.mm-muscle {
+  fill: var(--border-strong);
+  opacity: 0.45;
+  transition: fill 0.2s ease, opacity 0.2s ease;
+}
+
+.mm-muscle.is-active {
+  fill: var(--primary);
+  opacity: 1;
+}
+
+.mm-label {
+  fill: var(--muted);
+  font-size: 8px;
+  font-weight: 600;
+}
+
+.muscle-map__caption {
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
 .timer-wrap {
   position: relative;
   width: clamp(220px, 58vw, 300px);

@@ -1,3 +1,5 @@
+import { buildMuscleMap, targetToRegions } from "./muscle-map.js";
+
 const STORAGE_KEY = "workout-runner.last-input.v1";
 const HISTORY_KEY = "workout-buddy.history.v1";
 const SESSIONS_KEY = "workout-buddy.sessions.v1";
@@ -53,7 +55,27 @@ const els = {
   genHistory: document.getElementById("gen-history"),
   genBtn: document.getElementById("gen-btn"),
   genStatus: document.getElementById("gen-status"),
+  muscleMap: document.getElementById("muscle-map"),
+  muscleMapSvg: document.getElementById("muscle-map-svg"),
+  muscleMapCaption: document.getElementById("muscle-map-caption"),
 };
+
+const muscleMap = buildMuscleMap();
+if (els.muscleMapSvg) els.muscleMapSvg.append(muscleMap.svg);
+
+function updateMuscleMap(ex) {
+  if (!els.muscleMap) return;
+  const target = ex ? extractTargetLine(ex.description || "") : "";
+  const regions = targetToRegions(target);
+  if (!regions.length || /rest/i.test(ex?.name || "")) {
+    els.muscleMap.hidden = true;
+    muscleMap.highlight([]);
+    return;
+  }
+  muscleMap.highlight(regions);
+  els.muscleMapCaption.textContent = `Targets: ${target}`;
+  els.muscleMap.hidden = false;
+}
 
 const REP_SET_ESTIMATE = 45; // seconds per set, used only for ETA estimation
 
@@ -580,6 +602,7 @@ function updateActiveUI() {
   renderMedia(els.media, images, ex.name);
   renderDescriptionText(els.description, rest);
   els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
+  updateMuscleMap(ex);
 
   document.body.classList.toggle("mode-reps", ex.type === "reps");
   document.body.classList.toggle("mode-time", ex.type !== "reps");
