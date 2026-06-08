@@ -27,6 +27,7 @@ const els = {
   sampleBtn: document.getElementById("sample-btn"),
   exerciseName: document.getElementById("exercise-name"),
   setText: document.getElementById("set-text"),
+  media: document.getElementById("exercise-media"),
   description: document.getElementById("exercise-desc"),
   timer: document.getElementById("timer"),
   nextUp: document.getElementById("next-up"),
@@ -80,6 +81,7 @@ const REP_SET_ESTIMATE = 45; // seconds per set, used only for ETA estimation
 
 const SAMPLE = `Jumping Jacks - 30s
 Squats - 3x10
+Image: https://placehold.co/800x450/1b2540/2dd4bf?text=Squat+demo
 Push-ups - 3x12
 Plank - 45s
 Lunges - 3 sets of 10
@@ -111,6 +113,132 @@ function parseSetsReps(text) {
   m = text.match(/(\d+)\s*(?:reps?|repetitions?)\b/i);
   if (m) return { sets: 1, reps: parseInt(m[1], 10) };
   return null;
+}
+
+// Image-link handling -------------------------------------------------------
+// A picture can be supplied three ways:
+//   1. markdown            ![alt](https://…)
+//   2. a labelled line     "Image: https://…"  (no file extension required)
+//   3. a bare URL ending in a known image extension
+// Labelled lines matter because lots of real image URLs (CDNs, placeholder
+// services, query-based endpoints) have no .png/.jpg suffix.
+
+const MD_IMG_RE = /!\[([^\]]*)\]\((https?:\/\/[^\s)]+?)\)/gi;
+const IMG_LABEL = "image|images|photo|photos|picture|pic|img|gif|illustration|demo|figure";
+const LABELED_IMG_RE = new RegExp(
+  `^[ \\t>*\\-]*(?:${IMG_LABEL})\\s*[:=\\-]\\s*(https?:\\/\\/\\S+?)\\s*$`,
+  "gim"
+);
+const BARE_IMG_RE =
+  /(https?:\/\/[^\s)]+?\.(?:png|jpe?g|gif|webp|svg|avif|bmp|apng|jfif)(?:\?[^\s)]*)?(?:#[^\s)]*)?)/gi;
+
+// Avoid mixed-content blocking on the https-served app.
+const upgradeUrl = (url) => url.trim().replace(/^http:\/\//i, "https://");
+
+function isImageOnlyLine(text) {
+  const t = (text || "").trim();
+  if (!t) return false;
+  return (
+    /^!\[[^\]]*\]\(https?:\/\/[^\s)]+\)$/i.test(t) ||
+    new RegExp(`^[ \\t>*\\-]*(?:${IMG_LABEL})\\s*[:=\\-]\\s*https?:\\/\\/\\S+$`, "i").test(t) ||
+    /^https?:\/\/[^\s)]+?\.(?:png|jpe?g|gif|webp|svg|avif|bmp|apng|jfif)(?:\?[^\s)]*)?(?:#[^\s)]*)?$/i.test(t)
+  );
+}
+
+// Pulls every image out of a description and returns the images plus the text
+// with those links removed, so the words read cleanly next to the picture.
+function extractImages(text) {
+  const images = [];
+  const seen = new Set();
+  const add = (url, alt) => {
+    const u = upgradeUrl(url);
+    if (!seen.has(u)) {
+      seen.add(u);
+      images.push({ url: u, alt: (alt || "").trim() });
+    }
+    return "";
+  };
+  let rest = String(text || "");
+  if (!rest) return { images, rest: "" };
+  rest = rest.replace(MD_IMG_RE, (_, alt, url) => add(url, alt));
+  rest = rest.replace(LABELED_IMG_RE, (_, url) => add(url, ""));
+  rest = rest.replace(BARE_IMG_RE, (url) => add(url, ""));
+  rest = rest.replace(/[ \t]+$/gm, "").replace(/\n{3,}/g, "\n\n").trim();
+  return { images, rest };
+}
+
+function firstImageUrl(text) {
+  return extractImages(text).images[0]?.url || "";
+}
+
+function makeImg(url, alt, className) {
+  const img = document.createElement("img");
+  img.className = className;
+  img.src = url;
+  img.alt = alt || "Exercise illustration";
+  img.loading = "lazy";
+  img.decoding = "async";
+  // Drop the element if the link is dead so we never show a broken-image icon.
+  img.addEventListener("error", () => img.remove());
+  return img;
+}
+
+// Renders the picture(s) for the active exercise as a prominent hero.
+function renderMedia(el, images, altFallback) {
+  if (!el) return;
+  el.replaceChildren();
+  if (!images.length) {
+    el.hidden = true;
+    return;
+  }
+  el.hidden = false;
+  for (const im of images.slice(0, 4)) {
+    el.append(makeImg(im.url, im.alt || altFallback, "exercise-img"));
+  }
+}
+
+const KNOWN_FIELDS =
+  /^(what to do|how to|how|form|target|targets|feel|equipment|gear|no weights|substitute|tip|tips|cue|cues|focus|muscles?|reps?|sets?|rest|breathing)$/i;
+
+// Renders a description as tidy "Label — value" rows when it follows the
+// generator format, otherwise as clean paragraphs.
+function renderDescriptionText(el, text) {
+  if (!el) return;
+  el.replaceChildren();
+  const t = String(text || "").trim();
+  if (!t) return;
+  const frag = document.createDocumentFragment();
+  let para = [];
+  const flush = () => {
+    if (!para.length) return;
+    const p = document.createElement("p");
+    p.className = "desc__para";
+    p.textContent = para.join(" ");
+    frag.append(p);
+    para = [];
+  };
+  for (const rawLine of t.split(/\n+/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const m = line.match(/^([A-Za-z][A-Za-z /]{1,18}?)\s*:\s*(.+)$/);
+    if (m && KNOWN_FIELDS.test(m[1].trim())) {
+      flush();
+      const row = document.createElement("div");
+      row.className = "desc__row";
+      const label = document.createElement("span");
+      label.className = "desc__label";
+      label.textContent = m[1].trim();
+      const value = document.createElement("span");
+      value.className = "desc__value";
+      value.textContent = m[2].trim();
+      row.append(label, value);
+      frag.append(row);
+    } else {
+      para.push(line);
+    }
+  }
+  flush();
+  el.append(frag);
 }
 
 function stripMetaFromName(text) {
@@ -174,11 +302,29 @@ function parseWorkout(text) {
   const hasBoldHeader = lines.some((l) => /\*\*[^*]+\*\*/.test(l));
 
   if (!hasBoldHeader) {
-    return lines
-      .map((l) => l.trim())
-      .filter((l) => l && !/^[#=_-]{2,}$/.test(l))
-      .map(parseLine)
-      .filter(Boolean);
+    const exercises = [];
+    let pendingImg = [];
+    for (const raw of lines) {
+      const l = raw.trim();
+      if (!l || /^[#=_-]{2,}$/.test(l)) continue;
+      if (isImageOnlyLine(l)) {
+        if (exercises.length) {
+          const prev = exercises[exercises.length - 1];
+          prev.description = prev.description ? `${prev.description}\n${l}` : l;
+        } else {
+          pendingImg.push(l);
+        }
+        continue;
+      }
+      const ex = parseLine(l);
+      if (!ex) continue;
+      if (pendingImg.length) {
+        ex.description = [pendingImg.join("\n"), ex.description].filter(Boolean).join("\n");
+        pendingImg = [];
+      }
+      exercises.push(ex);
+    }
+    return exercises;
   }
 
   const exercises = [];
@@ -297,7 +443,15 @@ function renderPreview(exercises) {
   for (const ex of exercises) {
     const li = document.createElement("li");
     li.className = "preview__item";
-    li.textContent = `${ex.name} · ${exerciseLabel(ex)}`;
+    const imgUrl = firstImageUrl(ex.description || "");
+    if (imgUrl) li.append(makeImg(imgUrl, ex.name, "preview__thumb"));
+    const name = document.createElement("span");
+    name.className = "preview__name";
+    name.textContent = ex.name;
+    const meta = document.createElement("span");
+    meta.className = "preview__meta";
+    meta.textContent = exerciseLabel(ex);
+    li.append(name, meta);
     els.preview.append(li);
   }
 }
@@ -444,7 +598,9 @@ function updateActiveUI() {
   const ex = state.exercises[state.index];
   if (!ex) return;
   els.exerciseName.textContent = ex.name;
-  els.description.textContent = ex.description || "";
+  const { images, rest } = extractImages(ex.description || "");
+  renderMedia(els.media, images, ex.name);
+  renderDescriptionText(els.description, rest);
   els.progress.textContent = `${state.index + 1} of ${state.exercises.length}`;
   updateMuscleMap(ex);
 
