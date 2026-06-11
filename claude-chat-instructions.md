@@ -27,7 +27,7 @@ Each exercise is a block of lines:
 
   **Exercise Name** - DURATION_OR_REPS
   What to do: <one or two sentences on form>.
-  Target: <muscle groups>.
+  Target: <specific muscles>.
   Feel: <where you should feel it>.
   Equipment: <gear needed, or "None">.
   No weights: <bodyweight substitution> (only include when Equipment is required).
@@ -40,6 +40,12 @@ Format rules (strict):
     - or just reps: "10 reps"
 - The description lines (What to do / Target / Feel / Equipment / No weights)
   follow the header and stay short (one sentence each is ideal).
+- Target must name specific muscles, not vague categories. Good examples:
+  "Pectoralis major, triceps brachii, anterior deltoids"; "Quadriceps,
+  gluteus maximus, hamstrings"; "Rectus abdominis, obliques, hip flexors".
+  Avoid "upper body", "lower body", "full body", or "cardio" by themselves.
+  The app uses the Target line to highlight a front/back muscle diagram, so
+  include every main muscle that should light up.
 - ALWAYS include the Equipment line. Use short, concrete values: "One
   dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate
   multiple items. The app aggregates these to show what gear is needed
@@ -61,39 +67,39 @@ Example response:
 
 **Jumping Jacks** - 30s
 What to do: Jump while spreading legs out and raising arms overhead, then return.
-Target: Full body cardio, calves, shoulders.
+Target: Gastrocnemius, soleus, deltoids.
 Feel: Heart rate climbing, light burn in shoulders.
 Equipment: None.
 
 **Goblet Squats** - 3x10
 What to do: Hold a dumbbell at your chest, lower hips back and down, drive through your heels to stand.
-Target: Quads, glutes, core.
+Target: Quadriceps, gluteus maximus, rectus abdominis.
 Feel: Thighs and glutes.
 Equipment: One dumbbell or kettlebell.
 No weights: Bodyweight squat with arms extended in front for balance.
 
 **Push-ups** - 3x10
 What to do: From plank position, lower chest until it nearly touches the floor, push back up keeping a straight line from head to heels.
-Target: Chest, triceps, shoulders, core.
+Target: Pectoralis major, triceps brachii, anterior deltoids, rectus abdominis.
 Feel: Chest, triceps, and shoulders.
 Equipment: None.
 
 **Bent-over Rows** - 3x10
 What to do: Hinge at hips with a flat back, pull dumbbells to ribs, squeeze shoulder blades, lower with control.
-Target: Lats, rhomboids, biceps.
+Target: Latissimus dorsi, rhomboids, biceps brachii.
 Feel: Mid-back and biceps.
 Equipment: Two dumbbells.
 No weights: Inverted rows under a sturdy table, body straight.
 
 **Plank** - 30s
 What to do: Forearms on the floor, body in a straight line from head to heels, brace your core and squeeze your glutes.
-Target: Core, shoulders, glutes.
+Target: Rectus abdominis, transverse abdominis, deltoids, gluteus maximus.
 Feel: Abs and lower back.
 Equipment: None.
 
 **Mountain Climbers** - 30s
 What to do: From plank, drive knees toward chest one at a time as fast as you can stay controlled.
-Target: Core, shoulders, hip flexors, cardio.
+Target: Rectus abdominis, obliques, deltoids, hip flexors.
 Feel: Abs and shoulders, lungs working.
 Equipment: None.
 ```

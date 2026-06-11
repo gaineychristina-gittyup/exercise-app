@@ -494,6 +494,7 @@ body.modal-open {
   flex-direction: column;
   align-items: center;
   gap: 6px;
+  width: min(100%, 360px);
 }
 
 .muscle-map[hidden] {
@@ -501,8 +502,15 @@ body.modal-open {
 }
 
 .muscle-map__svg {
-  width: 220px;
-  max-width: 70vw;
+  width: 300px;
+  max-width: 84vw;
+  border-radius: 18px;
+  padding: 10px 12px 6px;
+  background:
+    radial-gradient(circle at 50% 14%, rgba(45, 212, 191, 0.13), transparent 42%),
+    linear-gradient(180deg, rgba(30, 41, 76, 0.72), rgba(15, 23, 42, 0.2));
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
 }
 
 .mm-svg {
@@ -512,19 +520,22 @@ body.modal-open {
 }
 
 .mm-body {
-  fill: var(--surface);
-  stroke: var(--border-strong);
-  stroke-width: 0.8;
+  fill: url("#mm-body-grad");
+  stroke: rgba(148, 163, 184, 0.42);
+  stroke-width: 0.9;
 }
 
 .mm-muscle {
-  fill: var(--border-strong);
-  opacity: 0.45;
-  transition: fill 0.2s ease, opacity 0.2s ease;
+  fill: url("#mm-muscle-muted");
+  stroke: rgba(148, 163, 184, 0.18);
+  stroke-width: 0.35;
+  opacity: 0.72;
+  transition: fill 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
 }
 
 .mm-muscle.is-active {
-  fill: var(--primary);
+  fill: url("#mm-muscle-active");
+  filter: url("#mm-glow");
   opacity: 1;
 }
 

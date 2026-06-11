@@ -17,16 +17,21 @@ Live at https://gaineychristina-gittyup.github.io/exercise-app/.
 ```
 **Squats** - 3x10
 What to do: Stand feet shoulder-width, lower hips back and down, drive through your heels to stand.
-Target: Quads, glutes, hamstrings.
+Target: Quadriceps, gluteus maximus, hamstrings.
 Feel: Thighs and glutes.
 
 **Plank** - 30s
 What to do: Forearms on the floor, body straight from head to heels, brace your core.
-Target: Core, shoulders.
+Target: Rectus abdominis, obliques, deltoids.
 Feel: Abs and lower back.
 ```
 
 JSON also works: `[{"name":"Squats","sets":3,"reps":10,"description":"…"}, {"name":"Plank","duration":30}]`.
+
+The app uses the `Target:` line to highlight a front/back muscle diagram during
+the workout. For best results, name specific muscles instead of vague regions:
+`Pectoralis major, triceps brachii, anterior deltoids` is better than `upper
+body`.
 
 ## Get a workout from Claude
 

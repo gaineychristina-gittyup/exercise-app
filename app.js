@@ -276,7 +276,7 @@ function normalizeExercise(raw) {
 
 function parseLine(line) {
   const cleaned = line
-    .replace(/^\s*(?:\d+[.)]\s*|[-*•]\s*)/, "")
+    .replace(/^\s*(?:\d+[.)]\s*|[-*•]\s+)/, "")
     .trim();
   if (!cleaned) return null;
   const sr = parseSetsReps(cleaned);
@@ -1072,7 +1072,7 @@ Each exercise is a block of lines:
 
   **Exercise Name** - DURATION_OR_REPS
   What to do: <one or two sentences on form>.
-  Target: <muscle groups>.
+  Target: <specific muscles>.
   Feel: <where you should feel it>.
   Equipment: <gear needed, or "None">.
   No weights: <substitution if equipment is needed, otherwise omit this line>.
@@ -1081,6 +1081,8 @@ Format rules (strict):
 - The header line MUST wrap the exercise name in **double asterisks**.
 - Header is followed by " - " then either a duration ("30s", "45s", "1 min", "1:30"), or sets x reps ("3x10", "3 sets of 10"), or just reps ("10 reps").
 - Description lines follow the header. Always include Equipment. Include "No weights:" only when equipment is required (a specific bodyweight substitution).
+- Target must name specific muscles, not vague categories. Good examples: "Pectoralis major, triceps brachii, anterior deltoids"; "Quadriceps, gluteus maximus, hamstrings"; "Rectus abdominis, obliques, hip flexors". Avoid "upper body", "lower body", "full body", or "cardio" by themselves.
+- The app uses the Target line to highlight a front/back muscle diagram, so include every main muscle that should light up.
 - Equipment values should be short and concrete: "One dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate multiple items.
 - Separate exercises with a single blank line.
 - Rest periods: "**Rest** - 15s" with no description below it. Only between hard timed intervals — not between rep-based exercises.
@@ -1145,7 +1147,7 @@ async function generateWorkout() {
       body: JSON.stringify({
         system_instruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
         contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7 },
+        generationConfig: { temperature: 0.2 },
       }),
     });
     if (!res.ok) {
