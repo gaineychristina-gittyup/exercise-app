@@ -956,21 +956,44 @@ async function generateWorkout() {
   els.genBtn.disabled = true;
   els.genStatus.textContent = "Thinking…";
 
+  const body = JSON.stringify({
+    system_instruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
+    contents: [{ role: "user", parts: [{ text: prompt }] }],
+    generationConfig: { temperature: 0.7 },
+  });
+  const callModel = (model) =>
+    fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=` +
+        encodeURIComponent(key),
+      { method: "POST", headers: { "content-type": "application/json" }, body }
+    );
+
   try {
-    const url =
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" +
-      encodeURIComponent(key);
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: GEMINI_SYSTEM_PROMPT }] },
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.7 },
-      }),
-    });
+    // Retry on overload (503) / rate limit (429), then fall back to flash-lite.
+    const attempts = [
+      { model: "gemini-2.5-flash", waitBefore: 0 },
+      { model: "gemini-2.5-flash", waitBefore: 2000 },
+      { model: "gemini-2.5-flash", waitBefore: 5000 },
+      { model: "gemini-2.5-flash-lite", waitBefore: 1000 },
+    ];
+    let res;
+    for (let i = 0; i < attempts.length; i++) {
+      const { model, waitBefore } = attempts[i];
+      if (waitBefore) {
+        els.genStatus.textContent =
+          model === "gemini-2.5-flash"
+            ? `Gemini is busy — retrying (${i + 1}/${attempts.length})…`
+            : "Gemini is busy — trying a lighter model…";
+        await new Promise((r) => setTimeout(r, waitBefore));
+      }
+      res = await callModel(model);
+      if (res.ok || (res.status !== 503 && res.status !== 429)) break;
+    }
     if (!res.ok) {
       const err = await res.text();
+      if (res.status === 503 || res.status === 429) {
+        throw new Error("Gemini is overloaded right now. Wait a minute and try again.");
+      }
       throw new Error(`Gemini ${res.status}: ${err.slice(0, 200)}`);
     }
     const data = await res.json();
