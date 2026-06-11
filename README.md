@@ -28,10 +28,10 @@ Feel: Abs and lower back.
 
 JSON also works: `[{"name":"Squats","sets":3,"reps":10,"description":"…"}, {"name":"Plank","duration":30}]`.
 
-The app uses the `Target:` line to highlight a front/back muscle diagram during
-the workout. For best results, name specific muscles instead of vague regions:
-`Pectoralis major, triceps brachii, anterior deltoids` is better than `upper
-body`.
+The app uses the `Target:` line to show anatomy reference images during the
+workout. For best results, name specific muscles instead of vague regions:
+`Pectoralis major, triceps brachii, anterior deltoids, serratus anterior` is
+better than `upper body`.
 
 ## Get a workout from Claude
 

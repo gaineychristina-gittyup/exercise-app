@@ -41,11 +41,11 @@ Format rules (strict):
 - The description lines (What to do / Target / Feel / Equipment / No weights)
   follow the header and stay short (one sentence each is ideal).
 - Target must name specific muscles, not vague categories. Good examples:
-  "Pectoralis major, triceps brachii, anterior deltoids"; "Quadriceps,
+  "Pectoralis major, triceps brachii, anterior deltoids, serratus anterior"; "Quadriceps,
   gluteus maximus, hamstrings"; "Rectus abdominis, obliques, hip flexors".
   Avoid "upper body", "lower body", "full body", or "cardio" by themselves.
-  The app uses the Target line to highlight a front/back muscle diagram, so
-  include every main muscle that should light up.
+  The app uses the Target line to show anatomy reference images, so include
+  every main muscle that should appear.
 - ALWAYS include the Equipment line. Use short, concrete values: "One
   dumbbell", "Pull-up bar", "Resistance band", "None". Comma-separate
   multiple items. The app aggregates these to show what gear is needed
@@ -80,7 +80,7 @@ No weights: Bodyweight squat with arms extended in front for balance.
 
 **Push-ups** - 3x10
 What to do: From plank position, lower chest until it nearly touches the floor, push back up keeping a straight line from head to heels.
-Target: Pectoralis major, triceps brachii, anterior deltoids, rectus abdominis.
+Target: Pectoralis major, triceps brachii, anterior deltoids, serratus anterior, rectus abdominis.
 Feel: Chest, triceps, and shoulders.
 Equipment: None.
 

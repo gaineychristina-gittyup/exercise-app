@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>GaineyFit</title>
-    <meta name="theme-color" content="#131a2b" />
+    <meta name="theme-color" content="#f6d4f6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="GaineyFit" />
@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Nunito+Sans:wght@400;500;600;700&display=swap"
     />
     <link rel="stylesheet" href="./styles.css" />
   </head>
@@ -25,6 +25,7 @@
         <nav class="tabs" role="tablist" aria-label="Sections">
           <button type="button" class="tab tab--active" data-tab="workout" role="tab" aria-selected="true">Workout</button>
           <button type="button" class="tab" data-tab="plan" role="tab" aria-selected="false">Plan</button>
+          <button type="button" class="tab" data-tab="soreness" role="tab" aria-selected="false">Soreness</button>
           <button type="button" class="tab" data-tab="history" role="tab" aria-selected="false">History</button>
         </nav>
         <button id="settings-btn" type="button" class="icon-btn" aria-label="Settings">
@@ -149,7 +150,7 @@
       <div class="tab-panel hidden" data-panel="history">
         <header class="app__header">
           <h1>History</h1>
-          <p class="app__subtitle">An X marks each day you finished a workout.</p>
+          <p class="app__subtitle">An X marks finished workouts. Muscle-group time is grouped by week.</p>
         </header>
         <div class="card">
           <div class="cal__nav">
@@ -163,6 +164,38 @@
           <div id="cal-grid" class="cal__grid" role="grid"></div>
           <p id="cal-stats" class="summary" aria-live="polite"></p>
           <div id="cal-muscles" class="muscles" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="tab-panel hidden" data-panel="soreness">
+        <header class="app__header">
+          <h1>Soreness</h1>
+          <p class="app__subtitle">Log what feels sore and ask AI to connect it to recent activity.</p>
+        </header>
+        <div class="card soreness">
+          <p class="hint">Soreness notes are saved on this device. AI insights also use your recent workout history.</p>
+          <div class="soreness__grid">
+            <div>
+              <label class="label" for="soreness-location">Location of soreness</label>
+              <input id="soreness-location" type="text" class="textarea gen__input" placeholder="left hamstring, front shoulder, lower back" />
+            </div>
+            <div>
+              <label class="label" for="soreness-activity">Related activity</label>
+              <input id="soreness-activity" type="text" class="textarea gen__input" placeholder="squats, run, push-ups, tennis" />
+            </div>
+          </div>
+          <label class="label" for="soreness-notes">Notes</label>
+          <textarea id="soreness-notes" class="textarea soreness__notes" rows="3" placeholder="When it started, what makes it better or worse, intensity, side..."></textarea>
+          <div class="row row--actions">
+            <button id="soreness-save-btn" type="button" class="button button--ghost">Save note</button>
+            <button id="soreness-ai-btn" type="button" class="button button--primary">AI insights</button>
+            <span id="soreness-status" class="hint gen__status" aria-live="polite"></span>
+          </div>
+          <div id="soreness-insight" class="soreness__insight" aria-live="polite"></div>
+        </div>
+        <div class="card soreness-log-card">
+          <div class="muscles__head">Soreness history</div>
+          <div id="soreness-log" class="soreness-log" aria-live="polite"></div>
         </div>
       </div>
     </main>
