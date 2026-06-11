@@ -110,8 +110,7 @@ export function buildMuscleMap() {
     const seen = new Set();
     const items = regions
       .map((key) => ({ key, ...IMAGE_LIBRARY[key] }))
-      .filter((item) => item.file && !seen.has(item.file) && seen.add(item.file))
-      .slice(0, 4);
+      .filter((item) => item.file && !seen.has(item.file) && seen.add(item.file));
 
     for (const item of items) gallery.append(makeCard(item));
   }
